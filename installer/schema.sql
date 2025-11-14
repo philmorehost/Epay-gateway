@@ -7,6 +7,29 @@ CREATE TABLE `settings` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+INSERT INTO `settings` (`setting`, `value`) VALUES
+('smtp_host', ''),
+('smtp_port', '587'),
+('smtp_username', ''),
+('smtp_password', ''),
+('smtp_encryption', 'tls');
+
+
+CREATE TABLE `email_templates` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `subject` varchar(255) NOT NULL,
+  `body` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `email_templates` (`name`, `subject`, `body`) VALUES
+('Welcome Email', 'Welcome to Our Service!', '<h1>Welcome, {client_name}!</h1><p>Thank you for registering. We are excited to have you on board.</p>');
+
+
 CREATE TABLE `admins` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,

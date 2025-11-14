@@ -22,3 +22,6 @@ try {
 } catch (Exception $e) {
     die("An error occurred while connecting to the database.");
 }
+
+// Include the core email sending system
+require_once __DIR__ . '/email.php';

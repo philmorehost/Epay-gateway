@@ -43,7 +43,10 @@ if (!isset($_SESSION['admin_id'])) {
                 <a class="nav-link" href="#">Resellers</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Settings</a>
+                <a class="nav-link" href="settings.php">Settings</a>
+            </li>
+             <li class="nav-item">
+                <a class="nav-link" href="email_templates.php">Email Templates</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="logout.php">Logout</a>

@@ -33,7 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('sss', $name, $email, $hashed_password);
 
             if ($stmt->execute()) {
-                // In a real application, you would send a confirmation email here.
+                // Send welcome email
+                $template_result = $db->query("SELECT * FROM email_templates WHERE name = 'Welcome Email'");
+                if ($template = $template_result->fetch_assoc()) {
+                    $subject = $template['subject'];
+                    $body = str_replace('{client_name}', $name, $template['body']);
+                    send_email($email, $subject, $body);
+                }
+
                 $success = "Registration successful! You can now <a href='login.php'>log in</a>.";
             } else {
                 $error = "An error occurred during registration. Please try again.";
