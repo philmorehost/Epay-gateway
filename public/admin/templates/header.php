@@ -34,6 +34,9 @@ if (!isset($_SESSION['admin_id'])) {
                 <a class="nav-link" href="invoices.php">Invoices</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="manual_payments.php">Manual Payments</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="#">Clients</a>
             </li>
             <li class="nav-item">

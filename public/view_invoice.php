@@ -30,6 +30,14 @@ if (!$invoice) {
     header('Location: invoices.php');
     exit;
 }
+
+// Fetch user's credit balance
+$stmt = $db->prepare("SELECT credit_balance FROM users WHERE id = ?");
+$stmt->bind_param('i', $_SESSION['user_id']);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
+$credit_balance = $user['credit_balance'];
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,7 +92,23 @@ if (!$invoice) {
 
             <?php if ($invoice['status'] === 'Unpaid'): ?>
             <div class="text-center mt-4">
-                <a href="pay.php?id=<?php echo $invoice['id']; ?>" class="btn btn-success btn-lg">Pay Now with Paystack</a>
+                <h5>Pay with Credit</h5>
+                <p>Your current credit balance: <strong>$<?php echo number_format($credit_balance, 2); ?></strong></p>
+                <?php if ($credit_balance >= $invoice['amount']): ?>
+                    <form action="pay_with_credit.php" method="post" class="d-inline">
+                        <input type="hidden" name="invoice_id" value="<?php echo $invoice['id']; ?>">
+                        <button type="submit" class="btn btn-primary btn-lg mx-2">Apply Credit ($<?php echo number_format($invoice['amount'], 2); ?>)</button>
+                    </form>
+                <?php else: ?>
+                    <p class="text-muted">You do not have enough credit to pay this invoice.</p>
+                <?php endif; ?>
+            </div>
+            <hr>
+            <div class="text-center mt-4">
+                <h5>Other Payment Methods</h5>
+                <a href="pay.php?id=<?php echo $invoice['id']; ?>" class="btn btn-success btn-lg mx-2">Pay with Paystack</a>
+                <a href="manual_payment.php?id=<?php echo $invoice['id']; ?>&method=bank" class="btn btn-secondary btn-lg mx-2">Pay with Bank Transfer</a>
+                <a href="manual_payment.php?id=<?php echo $invoice['id']; ?>&method=crypto" class="btn btn-secondary btn-lg mx-2">Pay with Cryptocurrency</a>
             </div>
             <?php endif; ?>
         </div>

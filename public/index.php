@@ -7,6 +7,11 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Fetch user details
+$stmt = $db->prepare("SELECT name, credit_balance FROM users WHERE id = ?");
+$stmt->bind_param('i', $_SESSION['user_id']);
+$stmt->execute();
+$user = $stmt->get_result()->fetch_assoc();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,12 +30,26 @@ if (!isset($_SESSION['user_id'])) {
         <p>Welcome! This is a placeholder for the main client dashboard.</p>
     </div>
 
-    <div class="stat-card">
-        <h5 class="stat-card-title">Account Status</h5>
-        <p class="stat-card-value">Active</p>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h5 class="stat-card-title">Account Status</h5>
+                <p class="stat-card-value">Active</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h5 class="stat-card-title">Credit Balance</h5>
+                <p class="stat-card-value">$<?php echo number_format($user['credit_balance'], 2); ?></p>
+            </div>
+        </div>
     </div>
 
-    <a href="logout.php" class="btn btn-danger w-100">Logout</a>
+    <div class="mt-4">
+        <a href="add_funds.php" class="btn btn-primary">Add Funds</a>
+        <a href="invoices.php" class="btn btn-secondary">My Invoices</a>
+        <a href="logout.php" class="btn btn-danger">Logout</a>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

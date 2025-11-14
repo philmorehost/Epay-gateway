@@ -20,6 +20,7 @@ CREATE TABLE `users` (
     `name` varchar(255) NOT NULL,
     `email` varchar(255) NOT NULL,
     `password` varchar(255) NOT NULL,
+    `credit_balance` decimal(10,2) NOT NULL DEFAULT '0.00',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -42,6 +43,7 @@ CREATE TABLE `invoices` (
     `amount` decimal(10,2) NOT NULL,
     `status` varchar(50) NOT NULL DEFAULT 'Unpaid',
     `due_date` date NOT NULL,
+    `is_credit_invoice` tinyint(1) NOT NULL DEFAULT '0',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),

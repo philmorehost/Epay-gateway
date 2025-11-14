@@ -35,13 +35,34 @@ if ($event->event === 'charge.success') {
         $invoice_id = (int)$matches[1];
 
         try {
-            // Update the invoice status to 'Paid'
-            $stmt = $db->prepare("UPDATE invoices SET status = 'Paid' WHERE id = ? AND status = 'Unpaid'");
+            // Check if it's a credit invoice
+            $stmt = $db->prepare("SELECT user_id, amount, is_credit_invoice FROM invoices WHERE id = ?");
             $stmt->bind_param('i', $invoice_id);
             $stmt->execute();
+            $invoice = $stmt->get_result()->fetch_assoc();
+
+            if ($invoice) {
+                $db->begin_transaction();
+
+                // Update the invoice status to 'Paid'
+                $stmt = $db->prepare("UPDATE invoices SET status = 'Paid' WHERE id = ? AND status = 'Unpaid'");
+                $stmt->bind_param('i', $invoice_id);
+                $stmt->execute();
+
+                // If it's a credit invoice, add funds to the user's balance
+                if ($invoice['is_credit_invoice']) {
+                    $stmt = $db->prepare("UPDATE users SET credit_balance = credit_balance + ? WHERE id = ?");
+                    $stmt->bind_param('di', $invoice['amount'], $invoice['user_id']);
+                    $stmt->execute();
+                } else {
+                    // It's a regular invoice, so provision the service
+                    // (e.g., create a hosting account)
+                }
+
+                $db->commit();
+            }
 
             // In a real application, you might also:
-            // - Provision the service (e.g., create a hosting account)
             // - Send a payment confirmation email to the user
             // - Log the transaction for auditing purposes
 
