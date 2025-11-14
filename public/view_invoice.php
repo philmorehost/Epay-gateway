@@ -13,33 +13,80 @@ if (!$invoice_id) {
     exit;
 }
 
-// In a real application, you would fetch the invoice details from the database here.
+// Fetch invoice details
+$stmt = $db->prepare(
+    "SELECT i.id, i.amount, i.status, i.due_date, p.name as product_name
+     FROM invoices i
+     JOIN orders o ON i.order_id = o.id
+     JOIN products p ON o.product_id = p.id
+     WHERE i.id = ? AND i.user_id = ?"
+);
+$stmt->bind_param('ii', $invoice_id, $_SESSION['user_id']);
+$stmt->execute();
+$invoice = $stmt->get_result()->fetch_assoc();
+
+if (!$invoice) {
+    $_SESSION['error_message'] = "Invoice not found.";
+    header('Location: invoices.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Invoice - Client Area</title>
+    <title>View Invoice #<?php echo htmlspecialchars($invoice['id']); ?> - Client Area</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div class="container py-5">
     <div class="installer-header text-center mb-4">
-        <h1>Invoice #<?php echo htmlspecialchars($invoice_id); ?></h1>
+        <h1>Invoice #<?php echo htmlspecialchars($invoice['id']); ?></h1>
     </div>
 
     <div class="card">
         <div class="card-body">
-            <p>This is a placeholder for the invoice details. The full invoice view with payment options will be implemented in a future step.</p>
-
-            <div class="mt-4">
-                <h4>Payment Details</h4>
-                <p><strong>Amount Due:</strong> $XX.XX</p>
-                <p><strong>Due Date:</strong> YYYY-MM-DD</p>
-                <button class="btn btn-success">Pay Now with Paystack</button>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Billed To:</h5>
+                    <p><!-- User details would go here --></p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5>Invoice Details:</h5>
+                    <p><strong>Date:</strong> <?php echo date('M j, Y'); ?></p>
+                    <p><strong>Due Date:</strong> <?php echo date('M j, Y', strtotime($invoice['due_date'])); ?></p>
+                    <p><strong>Status:</strong> <span class="badge bg-<?php echo $invoice['status'] === 'Paid' ? 'success' : 'warning'; ?>"><?php echo htmlspecialchars($invoice['status']); ?></span></p>
+                </div>
             </div>
+            <hr>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><?php echo htmlspecialchars($invoice['product_name']); ?></td>
+                        <td class="text-end">$<?php echo number_format($invoice['amount'], 2); ?></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th class="text-end">Total:</th>
+                        <th class="text-end">$<?php echo number_format($invoice['amount'], 2); ?></th>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <?php if ($invoice['status'] === 'Unpaid'): ?>
+            <div class="text-center mt-4">
+                <a href="pay.php?id=<?php echo $invoice['id']; ?>" class="btn btn-success btn-lg">Pay Now with Paystack</a>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
     <div class="text-center mt-4">
