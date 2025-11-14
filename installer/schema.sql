@@ -44,8 +44,18 @@ CREATE TABLE `users` (
     `email` varchar(255) NOT NULL,
     `password` varchar(255) NOT NULL,
     `credit_balance` decimal(10,2) NOT NULL DEFAULT '0.00',
+    `is_reseller` tinyint(1) NOT NULL DEFAULT '0',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `reseller_settings` (
+    `user_id` int(11) NOT NULL,
+    `company_name` varchar(255) DEFAULT NULL,
+    `logo_url` varchar(255) DEFAULT NULL,
+    `support_email` varchar(255) DEFAULT NULL,
+    PRIMARY KEY (`user_id`),
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `orders` (

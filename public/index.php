@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Fetch user details
-$stmt = $db->prepare("SELECT name, credit_balance FROM users WHERE id = ?");
+$stmt = $db->prepare("SELECT name, credit_balance, is_reseller FROM users WHERE id = ?");
 $stmt->bind_param('i', $_SESSION['user_id']);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -47,7 +47,12 @@ $user = $stmt->get_result()->fetch_assoc();
 
     <div class="mt-4">
         <a href="add_funds.php" class="btn btn-primary">Add Funds</a>
-        <a href="invoices.php" class="btn btn-secondary">My Invoices</a>
+        <a href="invoices.php" class="btn btn-info">My Invoices</a>
+        <?php if ($user['is_reseller']): ?>
+            <a href="reseller/index.php" class="btn btn-success">Reseller Portal</a>
+        <?php else: ?>
+            <a href="become_reseller.php" class="btn btn-outline-primary">Become a Reseller</a>
+        <?php endif; ?>
         <a href="logout.php" class="btn btn-danger">Logout</a>
     </div>
 </div>
