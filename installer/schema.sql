@@ -54,8 +54,20 @@ CREATE TABLE `reseller_settings` (
     `company_name` varchar(255) DEFAULT NULL,
     `logo_url` varchar(255) DEFAULT NULL,
     `support_email` varchar(255) DEFAULT NULL,
+    `retail_markup_percent` decimal(5,2) NOT NULL DEFAULT '0.00',
     PRIMARY KEY (`user_id`),
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `customers` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `reseller_user_id` int(11) NOT NULL,
+    `name` varchar(255) NOT NULL,
+    `email` varchar(255) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `email` (`email`),
+    FOREIGN KEY (`reseller_user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `orders` (
@@ -89,6 +101,7 @@ CREATE TABLE `products` (
     `description` text,
     `price_monthly` decimal(10,2) NOT NULL DEFAULT '0.00',
     `price_annually` decimal(10,2) NOT NULL DEFAULT '0.00',
+    `wholesale_discount_percent` decimal(5,2) NOT NULL DEFAULT '0.00',
     `category` varchar(100) NOT NULL,
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)

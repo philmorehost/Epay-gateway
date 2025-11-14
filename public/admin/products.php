@@ -18,15 +18,16 @@ try {
         $price_monthly = $_POST['price_monthly'];
         $price_annually = $_POST['price_annually'];
         $category = $_POST['category'];
+        $wholesale_discount_percent = $_POST['wholesale_discount_percent'];
 
         if ($action === 'edit' && $product_id) {
-            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price_monthly = ?, price_annually = ?, category = ? WHERE id = ?");
-            $stmt->bind_param('ssddsi', $name, $description, $price_monthly, $price_annually, $category, $product_id);
+            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price_monthly = ?, price_annually = ?, category = ?, wholesale_discount_percent = ? WHERE id = ?");
+            $stmt->bind_param('ssddsi', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $product_id);
             $stmt->execute();
             $success = "Product updated successfully.";
         } elseif ($action === 'add') {
-            $stmt = $db->prepare("INSERT INTO products (name, description, price_monthly, price_annually, category) VALUES (?, ?, ?, ?, ?)");
-            $stmt->bind_param('ssdds', $name, $description, $price_monthly, $price_annually, $category);
+            $stmt = $db->prepare("INSERT INTO products (name, description, price_monthly, price_annually, category, wholesale_discount_percent) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssddsd', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent);
             $stmt->execute();
             $success = "Product added successfully.";
         }
@@ -85,6 +86,10 @@ if ($action === 'edit' && $product_id) {
                 <label for="category" class="form-label">Category</label>
                 <input type="text" class="form-control" id="category" name="category" value="<?php echo $product_to_edit['category'] ?? ''; ?>" required>
             </div>
+            <div class="mb-3">
+                <label for="wholesale_discount_percent" class="form-label">Wholesale Discount (%)</label>
+                <input type="number" step="0.01" class="form-control" id="wholesale_discount_percent" name="wholesale_discount_percent" value="<?php echo $product_to_edit['wholesale_discount_percent'] ?? '0.00'; ?>" required>
+            </div>
 
             <button type="submit" class="btn btn-primary"><?php echo $product_to_edit ? 'Update Product' : 'Add Product'; ?></button>
             <?php if ($product_to_edit): ?>
@@ -106,6 +111,7 @@ if ($action === 'edit' && $product_id) {
                     <th>Category</th>
                     <th>Monthly Price</th>
                     <th>Annual Price</th>
+                    <th>Wholesale Discount</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -116,6 +122,7 @@ if ($action === 'edit' && $product_id) {
                         <td><?php echo htmlspecialchars($product['category']); ?></td>
                         <td>$<?php echo number_format($product['price_monthly'], 2); ?></td>
                         <td>$<?php echo number_format($product['price_annually'], 2); ?></td>
+                        <td><?php echo number_format($product['wholesale_discount_percent'], 2); ?>%</td>
                         <td>
                             <a href="?action=edit&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-primary">Edit</a>
                             <a href="?action=delete&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</a>

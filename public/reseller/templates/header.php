@@ -40,7 +40,7 @@ if (!$user || !$user['is_reseller']) {
                 <a class="nav-link active" href="index.php">Dashboard</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Customers</a>
+                <a class="nav-link" href="customers.php">Customers</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="settings.php">Settings</a>

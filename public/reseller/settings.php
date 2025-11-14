@@ -9,9 +9,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $company_name = $_POST['company_name'];
         $logo_url = $_POST['logo_url'];
         $support_email = $_POST['support_email'];
+        $retail_markup_percent = $_POST['retail_markup_percent'];
 
-        $stmt = $db->prepare("UPDATE reseller_settings SET company_name = ?, logo_url = ?, support_email = ? WHERE user_id = ?");
-        $stmt->bind_param('sssi', $company_name, $logo_url, $support_email, $user_id);
+        $stmt = $db->prepare("UPDATE reseller_settings SET company_name = ?, logo_url = ?, support_email = ?, retail_markup_percent = ? WHERE user_id = ?");
+        $stmt->bind_param('sssdi', $company_name, $logo_url, $support_email, $retail_markup_percent, $user_id);
         $stmt->execute();
         $success = "Settings updated successfully.";
 
@@ -49,6 +50,12 @@ $reseller_settings = $stmt->get_result()->fetch_assoc();
             <div class="mb-3">
                 <label for="support_email" class="form-label">Support Email</label>
                 <input type="email" class="form-control" id="support_email" name="support_email" value="<?php echo htmlspecialchars($reseller_settings['support_email'] ?? ''); ?>">
+            </div>
+            <hr>
+            <div class="mb-3">
+                <label for="retail_markup_percent" class="form-label">Global Retail Markup (%)</label>
+                <input type="number" step="0.01" class="form-control" id="retail_markup_percent" name="retail_markup_percent" value="<?php echo htmlspecialchars($reseller_settings['retail_markup_percent'] ?? '0.00'); ?>">
+                <small class="form-text text-muted">Set the percentage to increase prices for your customers.</small>
             </div>
             <button type="submit" class="btn btn-primary">Save Settings</button>
         </form>
