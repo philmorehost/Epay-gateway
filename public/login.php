@@ -15,7 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user_id'] = $user['id'];
-        header('Location: index.php');
+
+        // Redirect to the intended page or the dashboard
+        $return_to = $_SESSION['return_to'] ?? 'index.php';
+        unset($_SESSION['return_to']);
+        header("Location: $return_to");
         exit;
     } else {
         $error = "Invalid email or password.";
