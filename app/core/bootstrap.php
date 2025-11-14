@@ -25,3 +25,7 @@ try {
 
 // Include the core email sending system
 require_once __DIR__ . '/email.php';
+
+// Verify the host domain
+require_once __DIR__ . '/host_check.php';
+verify_host();

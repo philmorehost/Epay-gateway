@@ -55,7 +55,9 @@ CREATE TABLE `reseller_settings` (
     `logo_url` varchar(255) DEFAULT NULL,
     `support_email` varchar(255) DEFAULT NULL,
     `retail_markup_percent` decimal(5,2) NOT NULL DEFAULT '0.00',
+    `custom_domain` varchar(255) DEFAULT NULL,
     PRIMARY KEY (`user_id`),
+    UNIQUE KEY `custom_domain` (`custom_domain`),
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

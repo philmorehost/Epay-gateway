@@ -10,9 +10,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $logo_url = $_POST['logo_url'];
         $support_email = $_POST['support_email'];
         $retail_markup_percent = $_POST['retail_markup_percent'];
+        $custom_domain = $_POST['custom_domain'];
 
-        $stmt = $db->prepare("UPDATE reseller_settings SET company_name = ?, logo_url = ?, support_email = ?, retail_markup_percent = ? WHERE user_id = ?");
-        $stmt->bind_param('sssdi', $company_name, $logo_url, $support_email, $retail_markup_percent, $user_id);
+        // Validate that the domain is not already in use by another reseller
+        if (!empty($custom_domain)) {
+            $stmt = $db->prepare("SELECT user_id FROM reseller_settings WHERE custom_domain = ? AND user_id != ?");
+            $stmt->bind_param('si', $custom_domain, $user_id);
+            $stmt->execute();
+            if ($stmt->get_result()->num_rows > 0) {
+                throw new Exception("This custom domain is already in use.");
+            }
+        }
+
+        $stmt = $db->prepare("UPDATE reseller_settings SET company_name = ?, logo_url = ?, support_email = ?, retail_markup_percent = ?, custom_domain = ? WHERE user_id = ?");
+        $stmt->bind_param('sssdsi', $company_name, $logo_url, $support_email, $retail_markup_percent, $custom_domain, $user_id);
         $stmt->execute();
         $success = "Settings updated successfully.";
 
@@ -50,6 +61,11 @@ $reseller_settings = $stmt->get_result()->fetch_assoc();
             <div class="mb-3">
                 <label for="support_email" class="form-label">Support Email</label>
                 <input type="email" class="form-control" id="support_email" name="support_email" value="<?php echo htmlspecialchars($reseller_settings['support_email'] ?? ''); ?>">
+            </div>
+            <div class="mb-3">
+                <label for="custom_domain" class="form-label">Custom Domain</label>
+                <input type="text" class="form-control" id="custom_domain" name="custom_domain" value="<?php echo htmlspecialchars($reseller_settings['custom_domain'] ?? ''); ?>">
+                <small class="form-text text-muted">e.g., billing.yourdomain.com. You must point a CNAME record to this server.</small>
             </div>
             <hr>
             <div class="mb-3">
