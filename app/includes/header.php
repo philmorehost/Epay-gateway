@@ -16,6 +16,12 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/index.php?page=home">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/index.php?page=products">Products</a>
+                    </li>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <li class="nav-item">
                             <a class="nav-link" href="/index.php?page=dashboard">Dashboard</a>

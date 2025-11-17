@@ -6,7 +6,7 @@ require_once __DIR__ . '/../app/core/bootstrap.php';
 $page = $_GET['page'] ?? 'home';
 
 // Whitelist of allowed pages
-$allowed_pages = ['home', 'login', 'dashboard', 'register', 'logout'];
+$allowed_pages = ['home', 'login', 'dashboard', 'register', 'logout', 'products'];
 
 if (in_array($page, $allowed_pages)) {
     $page_file = __DIR__ . '/../app/pages/' . $page . '.php';
