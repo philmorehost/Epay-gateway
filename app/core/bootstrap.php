@@ -24,6 +24,9 @@ try {
     die("Database connection error. Please run the installer or check your configuration.");
 }
 
+// Include the core functions file
+require_once __DIR__ . '/functions.php';
+
 // You can add more core functions here, such as:
 // - User authentication functions
 // - Template rendering functions

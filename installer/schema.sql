@@ -42,6 +42,9 @@ CREATE TABLE `email_templates` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+INSERT INTO `email_templates` (`id`, `name`, `subject`, `body`) VALUES
+(1,	'Welcome Email',	'Welcome to Our Service, {name}!',	'<h3>Hi {name},</h3><p>Thank you for registering with us. We are excited to have you on board.</p><p>You can log in to your account at any time to manage your services.</p><p>Thank you,<br>The Team</p>');
+
 
 DROP TABLE IF EXISTS `invoices`;
 CREATE TABLE `invoices` (

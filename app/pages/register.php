@@ -34,8 +34,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($insert_stmt->execute()) {
                 $success = "Registration successful! You can now log in.";
-                // Optionally, redirect to login page after a delay
-                // header('Refresh: 3; URL=/index.php?page=login');
+
+                // Send welcome email
+                $template_stmt = $db->prepare("SELECT subject, body FROM email_templates WHERE name = 'Welcome Email'");
+                $template_stmt->execute();
+                $template_result = $template_stmt->get_result();
+                $template = $template_result->fetch_assoc();
+                $template_stmt->close();
+
+                if ($template) {
+                    $subject = str_replace('{name}', $name, $template['subject']);
+                    $body = str_replace('{name}', $name, $template['body']);
+                    $body = str_replace('{email}', $email, $body);
+
+                    send_email($email, $subject, $body);
+                }
+
             } else {
                 $error = "An error occurred during registration. Please try again.";
             }
