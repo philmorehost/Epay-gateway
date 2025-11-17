@@ -1,0 +1,29 @@
+# Composer dependencies
+/vendor/
+
+# Configuration files
+/config/
+
+# Log files
+*.log
+logs/
+
+# Environment-specific files
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+/build/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
