@@ -20,7 +20,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Password is correct, start a session
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['user_name'] = $user['name'];
-                header('Location: /index.php?page=dashboard');
+
+                // Handle redirect if one is set
+                if (isset($_SESSION['redirect_url'])) {
+                    $redirect_url = $_SESSION['redirect_url'];
+                    unset($_SESSION['redirect_url']);
+                    header('Location: ' . $redirect_url);
+                } else {
+                    header('Location: /index.php?page=dashboard');
+                }
                 exit;
             }
         }

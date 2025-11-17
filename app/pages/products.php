@@ -39,7 +39,7 @@ include __DIR__ . '/../includes/header.php';
                         </ul>
                     </div>
                     <div class="card-footer text-center">
-                        <a href="/order.php?id=<?php echo $product['id']; ?>" class="btn btn-primary">Order Now</a>
+                        <a href="/index.php?page=order&id=<?php echo $product['id']; ?>" class="btn btn-primary">Order Now</a>
                     </div>
                 </div>
             </div>
