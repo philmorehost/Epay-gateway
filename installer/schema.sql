@@ -124,6 +124,7 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `credit_balance` decimal(10,2) NOT NULL DEFAULT '0.00',
   `is_reseller` tinyint(1) NOT NULL DEFAULT '0',
+  `reseller_status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '0: Not a reseller, 1: Pending, 2: Approved',
   `tfa_secret` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

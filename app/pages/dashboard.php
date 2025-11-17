@@ -8,6 +8,14 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+// Fetch user details to check reseller status
+$stmt = $db->prepare("SELECT reseller_status FROM users WHERE id = ?");
+$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$stmt->close();
+
 $page_title = 'Dashboard';
 include __DIR__ . '/../includes/header.php';
 ?>
@@ -18,13 +26,20 @@ include __DIR__ . '/../includes/header.php';
             <a href="/index.php?page=dashboard" class="list-group-item list-group-item-action active">Dashboard</a>
             <a href="/index.php?page=invoices" class="list-group-item list-group-item-action">My Invoices</a>
             <a href="/index.php?page=add_funds" class="list-group-item list-group-item-action">Add Funds</a>
-            <!-- Add more links here as features are added -->
+            <?php if ($user['reseller_status'] == 0): ?>
+                <a href="/index.php?page=reseller_apply" class="list-group-item list-group-item-action">Become a Reseller</a>
+            <?php endif; ?>
         </div>
     </div>
     <div class="col-md-9">
         <?php if (isset($_GET['order_success'])): ?>
             <div class="alert alert-success">Your order has been placed successfully and an invoice has been generated.</div>
         <?php endif; ?>
+
+        <?php if ($user['reseller_status'] == 1): ?>
+            <div class="alert alert-info">Your reseller application is pending approval.</div>
+        <?php endif; ?>
+
         <div class="card">
             <div class="card-header">
                 Client Dashboard
