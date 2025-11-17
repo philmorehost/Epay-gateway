@@ -101,6 +101,7 @@ CREATE TABLE `reseller_settings` (
   `logo_url` varchar(255) DEFAULT NULL,
   `company_name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `custom_domain` (`custom_domain`),
   KEY `reseller_id` (`reseller_id`),
   CONSTRAINT `reseller_settings_ibfk_1` FOREIGN KEY (`reseller_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

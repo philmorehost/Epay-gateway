@@ -22,38 +22,31 @@ if (!$user || $user['is_reseller'] != 1) {
 }
 
 
-$page_title = 'Reseller Dashboard';
-include __DIR__ . '/../../app/includes/header.php'; // Using the main header for now
+$page_title = 'Dashboard';
+include __DIR__ . '/../../app/includes/reseller_header.php';
 ?>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="list-group">
-            <a href="/public/reseller/index.php" class="list-group-item list-group-item-action active">Dashboard</a>
-            <a href="/public/reseller/products.php" class="list-group-item list-group-item-action">Wholesale Products</a>
-            <a href="/public/reseller/settings.php" class="list-group-item list-group-item-action">Settings</a>
-        </div>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard</h1>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body text-center">
+        <h4>Your Balance</h4>
+        <h2>$<?php echo htmlspecialchars(number_format($user['credit_balance'], 2)); ?></h2>
+        <a href="/index.php?page=add_funds" class="btn btn-primary">Add Funds</a>
     </div>
-    <div class="col-md-9">
-        <div class="card mb-4">
-            <div class="card-body text-center">
-                <h4>Your Balance</h4>
-                <h2>$<?php echo htmlspecialchars(number_format($user['credit_balance'], 2)); ?></h2>
-                <a href="/index.php?page=add_funds" class="btn btn-primary">Add Funds</a>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-header">
-                Reseller Dashboard
-            </div>
-            <div class="card-body">
-                <h1>Welcome, Reseller!</h1>
-                <p>This is your reseller dashboard. You can manage your customers, products, and settings from here.</p>
-            </div>
-        </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        Welcome, Reseller!
+    </div>
+    <div class="card-body">
+        <p>This is your reseller dashboard. You can manage your customers, products, and settings from the sidebar.</p>
     </div>
 </div>
 
 
 <?php
-include __DIR__ . '/../../app/includes/footer.php';
+include __DIR__ . '/../../app/includes/reseller_footer.php';

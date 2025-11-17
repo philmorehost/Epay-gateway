@@ -24,8 +24,11 @@ if (!$invoice) {
     die("Invoice not found or does not belong to you.");
 }
 
-// Paystack API details (use placeholders)
-$paystack_secret_key = 'sk_test_...'; // Replace with your actual secret key
+// Paystack API details from config
+if (!defined('PAYSTACK_SECRET_KEY') || empty(PAYSTACK_SECRET_KEY)) {
+    die("Paystack payment gateway is not configured.");
+}
+$paystack_secret_key = PAYSTACK_SECRET_KEY;
 $paystack_url = 'https://api.paystack.co/transaction/initialize';
 
 // User details

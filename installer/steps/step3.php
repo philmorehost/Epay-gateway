@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $admin_pass = $_POST['admin_pass'] ?? '';
     $base_url = $_POST['base_url'] ?? '';
     $system_email = $_POST['system_email'] ?? '';
+    $paystack_secret_key = $_POST['paystack_secret_key'] ?? '';
 
     // Connect to the database
     $mysqli = new mysqli($db_host, $db_user, $db_pass, $db_name);
@@ -32,7 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $config_content .= "define('DB_USER', '" . addslashes($db_user) . "');\n";
             $config_content .= "define('DB_PASS', '" . addslashes($db_pass) . "');\n\n";
             $config_content .= "define('BASE_URL', '" . addslashes($base_url) . "');\n";
-            $config_content .= "define('SYSTEM_EMAIL', '" . addslashes($system_email) . "');\n";
+            $config_content .= "define('SYSTEM_EMAIL', '" . addslashes($system_email) . "');\n\n";
+            $config_content .= "// Payment Gateway Settings\n";
+            $config_content .= "define('PAYSTACK_SECRET_KEY', '" . addslashes($paystack_secret_key) . "');\n";
 
             if (file_put_contents('../config/config.php', $config_content)) {
                 header('Location: index.php?step=4');
@@ -84,6 +87,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mb-3">
                 <label for="system_email" class="form-label">System Email Address</label>
                 <input type="email" class="form-control" id="system_email" name="system_email" required>
+            </div>
+            <hr>
+            <h4>Payment Gateway Settings</h4>
+            <div class="mb-3">
+                <label for="paystack_secret_key" class="form-label">Paystack Secret Key</label>
+                <input type="text" class="form-control" id="paystack_secret_key" name="paystack_secret_key">
+                <small class="form-text text-muted">Enter your Paystack secret key (e.g., sk_test_...). Can be left blank.</small>
             </div>
             <button type="submit" class="btn btn-primary">Finish Installation</button>
         </form>

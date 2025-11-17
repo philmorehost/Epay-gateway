@@ -45,50 +45,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$page_title = 'Reseller Settings';
-include __DIR__ . '/../../app/includes/header.php';
+$page_title = 'Settings';
+include __DIR__ . '/../../app/includes/reseller_header.php';
 ?>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="list-group">
-            <a href="/public/reseller/index.php" class="list-group-item list-group-item-action">Dashboard</a>
-            <a href="/public/reseller/products.php" class="list-group-item list-group-item-action">Wholesale Products</a>
-            <a href="/public/reseller/settings.php" class="list-group-item list-group-item-action active">Settings</a>
-        </div>
-    </div>
-    <div class="col-md-9">
-        <div class="card">
-            <div class="card-header">
-                <h2>Reseller Settings</h2>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Reseller Settings</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert alert-success">Settings saved successfully.</div>
+        <?php endif; ?>
+        <form action="settings.php" method="post">
+            <h4>White-Label Settings</h4>
+            <div class="mb-3">
+                <label for="company_name" class="form-label">Company Name</label>
+                <input type="text" class="form-control" id="company_name" name="company_name" value="<?php echo htmlspecialchars($settings['company_name'] ?? ''); ?>">
             </div>
-            <div class="card-body">
-                <?php if (isset($_GET['success'])): ?>
-                    <div class="alert alert-success">Settings saved successfully.</div>
-                <?php endif; ?>
-                <form action="settings.php" method="post">
-                    <h4>White-Label Settings</h4>
-                    <div class="mb-3">
-                        <label for="company_name" class="form-label">Company Name</label>
-                        <input type="text" class="form-control" id="company_name" name="company_name" value="<?php echo htmlspecialchars($settings['company_name'] ?? ''); ?>">
-                    </div>
-                    <div class="mb-3">
-                        <label for="logo_url" class="form-label">Logo URL</label>
-                        <input type="text" class="form-control" id="logo_url" name="logo_url" value="<?php echo htmlspecialchars($settings['logo_url'] ?? ''); ?>">
-                    </div>
-                    <hr>
-                    <h4>Pricing Settings</h4>
-                    <div class="mb-3">
-                        <label for="retail_markup_percent" class="form-label">Retail Price Markup (%)</label>
-                        <input type="number" step="0.01" class="form-control" id="retail_markup_percent" name="retail_markup_percent" value="<?php echo htmlspecialchars($settings['retail_markup_percent'] ?? '0.00'); ?>">
-                        <small class="form-text text-muted">Set the percentage to increase the wholesale price by for your customers.</small>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Settings</button>
-                </form>
+            <div class="mb-3">
+                <label for="logo_url" class="form-label">Logo URL</label>
+                <input type="text" class="form-control" id="logo_url" name="logo_url" value="<?php echo htmlspecialchars($settings['logo_url'] ?? ''); ?>">
             </div>
-        </div>
+            <hr>
+            <h4>Pricing Settings</h4>
+            <div class="mb-3">
+                <label for="retail_markup_percent" class="form-label">Retail Price Markup (%)</label>
+                <input type="number" step="0.01" class="form-control" id="retail_markup_percent" name="retail_markup_percent" value="<?php echo htmlspecialchars($settings['retail_markup_percent'] ?? '0.00'); ?>">
+                <small class="form-text text-muted">Set the percentage to increase the wholesale price by for your customers.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
     </div>
 </div>
 
 <?php
-include __DIR__ . '/../../app/includes/footer.php';
+include __DIR__ . '/../../app/includes/reseller_footer.php';

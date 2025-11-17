@@ -27,45 +27,38 @@ $result = $db->query("SELECT *,
 $products = $result->fetch_all(MYSQLI_ASSOC);
 
 $page_title = 'Wholesale Products';
-include __DIR__ . '/../../app/includes/header.php';
+include __DIR__ . '/../../app/includes/reseller_header.php';
 ?>
 
-<div class="row">
-    <div class="col-md-3">
-        <div class="list-group">
-            <a href="/public/reseller/index.php" class="list-group-item list-group-item-action">Dashboard</a>
-            <a href="/public/reseller/products.php" class="list-group-item list-group-item-action active">Wholesale Products</a>
-            <a href="/public/reseller/settings.php" class="list-group-item list-group-item-action">Settings</a>
-        </div>
-    </div>
-    <div class="col-md-9">
-        <div class="card">
-            <div class="card-header">
-                <h2>Wholesale Product Pricing</h2>
-            </div>
-            <div class="card-body">
-                <table class="table">
-                    <thead>
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Wholesale Product Pricing</h1>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <p>This page shows you the wholesale cost for each product. Your retail price for your customers is this cost plus your markup percentage, which you can set in the Settings page.</p>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Your Monthly Cost</th>
+                        <th>Your Annual Cost</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($products as $product): ?>
                         <tr>
-                            <th>Product Name</th>
-                            <th>Your Monthly Cost</th>
-                            <th>Your Annual Cost</th>
+                            <td><?php echo htmlspecialchars($product['name']); ?></td>
+                            <td>$<?php echo htmlspecialchars(number_format($product['wholesale_monthly'], 2)); ?></td>
+                            <td>$<?php echo htmlspecialchars(number_format($product['wholesale_annually'], 2)); ?></td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($products as $product): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($product['name']); ?></td>
-                                <td>$<?php echo htmlspecialchars(number_format($product['wholesale_monthly'], 2)); ?></td>
-                                <td>$<?php echo htmlspecialchars(number_format($product['wholesale_annually'], 2)); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <?php
-include __DIR__ . '/../../app/includes/footer.php';
+include __DIR__ . '/../../app/includes/reseller_footer.php';
