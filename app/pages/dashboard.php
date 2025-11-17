@@ -17,6 +17,7 @@ include __DIR__ . '/../includes/header.php';
         <div class="list-group">
             <a href="/index.php?page=dashboard" class="list-group-item list-group-item-action active">Dashboard</a>
             <a href="/index.php?page=invoices" class="list-group-item list-group-item-action">My Invoices</a>
+            <a href="/index.php?page=add_funds" class="list-group-item list-group-item-action">Add Funds</a>
             <!-- Add more links here as features are added -->
         </div>
     </div>

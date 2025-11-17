@@ -15,6 +15,18 @@ if (!$invoice_id) {
     exit;
 }
 
+// Handle manual payment selection
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['manual_payment'])) {
+    $stmt = $db->prepare("UPDATE invoices SET status = 'Awaiting Payment' WHERE id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $invoice_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $stmt->close();
+    // Refresh the page to show the new status and payment details
+    header('Location: /index.php?page=view_invoice&id=' . $invoice_id);
+    exit;
+}
+
+
 // Fetch the invoice and ensure it belongs to the current user
 $stmt = $db->prepare("SELECT i.*, p.name as product_name, p.description as product_description
                       FROM invoices i
@@ -83,8 +95,21 @@ include __DIR__ . '/../includes/header.php';
 
         <?php if ($invoice['status'] === 'Unpaid'): ?>
         <div class="text-end">
-            <p>Payment options will appear here.</p>
-            <!-- Payment buttons will be added in a future step -->
+            <a href="/public/pay.php?invoice_id=<?php echo $invoice['id']; ?>" class="btn btn-success">Pay with Paystack</a>
+            <form action="/index.php?page=view_invoice&id=<?php echo $invoice['id']; ?>" method="post" class="d-inline">
+                <button type="submit" name="manual_payment" value="bank" class="btn btn-secondary">Pay with Bank Transfer</button>
+            </form>
+            <form action="/index.php?page=view_invoice&id=<?php echo $invoice['id']; ?>" method="post" class="d-inline">
+                <button type="submit" name="manual_payment" value="crypto" class="btn btn-secondary">Pay with Crypto</button>
+            </form>
+        </div>
+        <?php elseif ($invoice['status'] === 'Awaiting Payment'): ?>
+        <div class="alert alert-info">
+            <h4>Payment Instructions</h4>
+            <p>Your invoice is awaiting payment. Please use the details below to complete your payment.</p>
+            <!-- Add bank/crypto details here from a settings table in the future -->
+            <strong>Bank Details:</strong> ... <br>
+            <strong>Crypto Wallet:</strong> ...
         </div>
         <?php endif; ?>
     </div>
