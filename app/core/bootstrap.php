@@ -37,8 +37,7 @@ require_once 'functions.php';
 
 // --- 5. Host Check (for Reseller System) ---
 // This is a critical security and white-labeling check.
-// (We will create this file later)
-// require_once 'host_check.php';
+require_once 'host_check.php';
 
 
 // --- Autoloading for modules can be added here later ---
