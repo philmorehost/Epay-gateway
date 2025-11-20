@@ -13,6 +13,8 @@ $error_message = '';
 $success_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token(); // CSRF check
+
     // Very basic validation
     if (empty($_POST['first_name']) || empty($_POST['last_name']) || empty($_POST['email']) || empty($_POST['password'])) {
         $error_message = "Please fill in all required fields.";
@@ -79,6 +81,7 @@ $db->close();
                             <div class="alert alert-success"><?php echo $success_message; ?></div>
                         <?php else: ?>
                         <form method="POST">
+                            <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="first_name" class="form-label">First Name</label>

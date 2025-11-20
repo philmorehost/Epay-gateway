@@ -16,6 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Connection failed: " . $db->connect_error);
         }
 
+        // --- Check and create config directory ---
+        $config_dir = __DIR__ . '/../config';
+        if (!is_dir($config_dir)) {
+            if (!@mkdir($config_dir, 0755, true)) {
+                throw new Exception("Could not create config directory. Please check permissions.");
+            }
+        }
+
         // --- Write config.php file ---
         $config_content = "<?php\n\n";
         $config_content .= "// -- Database Configuration --\n";
@@ -24,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $config_content .= "define('DB_USER', '" . addslashes($db_user) . "');\n";
         $config_content .= "define('DB_PASS', '" . addslashes($db_pass) . "');\n\n";
 
-        $config_path = __DIR__ . '/../config/config.php';
+        $config_path = $config_dir . '/config.php';
 
         if (!@file_put_contents($config_path, $config_content)) {
              throw new Exception("Could not write to config file. Please check permissions on the /config directory.");

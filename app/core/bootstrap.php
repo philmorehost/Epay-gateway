@@ -33,8 +33,7 @@ if ($db->connect_error) {
 session_start();
 
 // --- 4. Load Core Functions ---
-// (We will create this file later)
-// require_once 'functions.php';
+require_once 'functions.php';
 
 // --- 5. Host Check (for Reseller System) ---
 // This is a critical security and white-labeling check.

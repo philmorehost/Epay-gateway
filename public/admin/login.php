@@ -13,6 +13,8 @@ require_once '../../app/core/bootstrap.php';
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token(); // CSRF check
+
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
@@ -32,6 +34,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Password is correct, start the session
                 $_SESSION['admin_id'] = $admin['id'];
                 $_SESSION['admin_username'] = $username;
+
+                // Regenerate session ID to prevent session fixation
+                session_regenerate_id(true);
 
                 // Redirect to the admin dashboard
                 header('Location: index.php');
@@ -79,6 +84,7 @@ $db->close();
                 <div class="alert alert-danger"><?php echo $error_message; ?></div>
             <?php endif; ?>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input type="text" class="form-control" id="username" name="username" required>

@@ -12,6 +12,8 @@ require_once '../app/core/bootstrap.php';
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token(); // CSRF check
+
     $email = $_POST['email'] ?? '';
     $password = $_POST['password'] ?? '';
 
@@ -27,6 +29,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
+
+                // Regenerate session ID
+                session_regenerate_id(true);
 
                 $redirect_url = $_SESSION['redirect_url'] ?? 'index.php';
                 unset($_SESSION['redirect_url']);
@@ -75,6 +80,7 @@ $db->close();
                 <div class="alert alert-danger"><?php echo $error_message; ?></div>
             <?php endif; ?>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                 <div class="mb-3">
                     <label for="email" class="form-label">Email address</label>
                     <input type="email" class="form-control" id="email" name="email" required>

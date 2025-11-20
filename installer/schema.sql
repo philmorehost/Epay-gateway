@@ -215,7 +215,9 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('smtp_password', ''),
 ('smtp_encryption', 'tls'),
 ('terms_of_service', 'Please define your terms of service.'),
-('privacy_policy', 'Please define your privacy policy.');
+('privacy_policy', 'Please define your privacy policy.'),
+('paystack_secret_key', ''),
+('paystack_public_key', '');
 
 
 -- --------------------------------------------------------

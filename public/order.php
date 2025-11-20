@@ -35,6 +35,8 @@ if (!$product) {
 
 // Handle the order submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf_token(); // CSRF check
+
     $user_id = $_SESSION['user_id'];
     $order_total = $product['price_annually']; // For simplicity, using annual price
 
@@ -110,6 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <p class="text-muted">An invoice will be generated for this order. You will be able to pay it from your client area.</p>
                 <div class="text-end">
                      <form method="POST">
+                        <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                         <a href="products.php" class="btn btn-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">Place Order</button>
                     </form>
