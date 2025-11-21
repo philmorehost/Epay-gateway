@@ -1,17 +1,17 @@
 <?php
 require_once 'header.php';
 require_once '../../app/core/bootstrap.php';
+require_once '../../app/core/provisioning.php'; // Include the provisioning logic
 
 $message = '';
 
 // Handle approval or rejection
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invoice_id'])) {
-    verify_csrf_token(); // CSRF check
+    verify_csrf_token();
 
     $invoice_id = (int)$_POST['invoice_id'];
     $action = $_POST['action'];
 
-    // Fetch the invoice to ensure it exists and is awaiting payment
     $stmt = $db->prepare("SELECT * FROM invoices WHERE id = ? AND status = 'Awaiting Payment'");
     $stmt->bind_param('i', $invoice_id);
     $stmt->execute();
@@ -19,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invoice_id'])) {
 
     if ($invoice) {
         if ($action === 'approve') {
-            // Use a transaction
             $db->begin_transaction();
             try {
                 // Mark invoice as paid
@@ -35,23 +34,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['invoice_id'])) {
                     $update_user->execute();
                 }
 
+                // If it's a product invoice, trigger provisioning
+                if ($invoice['is_credit_invoice'] == 0 && $invoice['order_id']) {
+                    trigger_provisioning($db, $invoice['order_id']);
+                }
+
                 $db->commit();
                 $message = "<div class='alert alert-success'>Invoice #{$invoice_id} has been approved and marked as paid.</div>";
             } catch (Exception $e) {
                 $db->rollback();
-                $message = "<div class='alert alert-danger'>Error approving invoice #{$invoice_id}.</div>";
+                $message = "<div class='alert alert-danger'>Error approving invoice #{$invoice_id}. " . $e->getMessage() . "</div>";
             }
 
         } elseif ($action === 'reject') {
-            // Simply mark as cancelled
             $db->query("UPDATE invoices SET status = 'Cancelled' WHERE id = {$invoice_id}");
             $message = "<div class='alert alert-warning'>Invoice #{$invoice_id} has been rejected and cancelled.</div>";
         }
     }
 }
 
-
-// Fetch all invoices awaiting manual payment
 $invoices_result = $db->query("SELECT i.*, u.email FROM invoices i JOIN users u ON i.user_id = u.id WHERE i.status = 'Awaiting Payment' ORDER BY i.created_date ASC");
 
 ?>
