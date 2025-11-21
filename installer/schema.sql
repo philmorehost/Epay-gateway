@@ -114,6 +114,7 @@ CREATE TABLE `products` (
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
   `order_date` timestamp NOT NULL DEFAULT current_timestamp(),
   `order_number` varchar(50) NOT NULL,
   `total` decimal(10,2) NOT NULL,
@@ -123,7 +124,9 @@ CREATE TABLE `orders` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `order_number` (`order_number`),
   KEY `user_id` (`user_id`),
-  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -217,7 +220,8 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('terms_of_service', 'Please define your terms of service.'),
 ('privacy_policy', 'Please define your privacy policy.'),
 ('paystack_secret_key', ''),
-('paystack_public_key', '');
+('paystack_public_key', ''),
+('connectreseller_api_key', '');
 
 
 -- --------------------------------------------------------
@@ -283,6 +287,23 @@ CREATE TABLE `cron_jobs` (
   `next_run` timestamp NOT NULL DEFAULT current_timestamp(),
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `tld_pricing`
+--
+
+CREATE TABLE `tld_pricing` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tld` varchar(100) NOT NULL,
+  `registration_price` decimal(10,2) NOT NULL,
+  `renewal_price` decimal(10,2) NOT NULL,
+  `transfer_price` decimal(10,2) NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tld` (`tld`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 

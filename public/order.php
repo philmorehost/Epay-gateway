@@ -4,7 +4,6 @@ require_once '../app/includes/header.php';
 
 // User must be logged in to order
 if (!isset($_SESSION['user_id'])) {
-    // Save the intended destination and redirect to login
     $_SESSION['redirect_url'] = $_SERVER['REQUEST_URI'];
     header('Location: login.php');
     exit;
@@ -18,48 +17,38 @@ if (!$product_id) {
     exit;
 }
 
-// Fetch the product details
 $stmt = $db->prepare("SELECT * FROM products WHERE id = ? AND hidden = 0");
 $stmt->bind_param('i', $product_id);
 $stmt->execute();
-$result = $stmt->get_result();
-$product = $result->fetch_assoc();
+$product = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if (!$product) {
-    // Product not found or is hidden
     header('Location: products.php');
     exit;
 }
 
-// --- Reseller Pricing Logic ---
-$order_total = $product['price_annually']; // Default to standard price
+// Reseller Pricing Logic
+$order_total = $product['price_annually'];
 if (defined('IS_RESELLER_STOREFRONT') && IS_RESELLER_STOREFRONT === true) {
     $wholesale_discount = (float)$product['wholesale_discount_percent'];
     $reseller_markup = (float)$GLOBALS['reseller_data']['settings']['retail_markup_percent'];
-
     $wholesale_price = $product['price_annually'] * (1 - ($wholesale_discount / 100));
-    $retail_price = $wholesale_price * (1 + ($reseller_markup / 100));
-
-    $order_total = $retail_price; // Use the calculated retail price for the order
+    $order_total = $wholesale_price * (1 + ($reseller_markup / 100));
 }
-// --- End Reseller Pricing Logic ---
-
 
 // Handle the order submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    verify_csrf_token(); // CSRF check
+    verify_csrf_token();
 
     $user_id = $_SESSION['user_id'];
 
-    // Use a transaction to ensure atomicity
     $db->begin_transaction();
-
     try {
-        // 1. Create the Order
+        // 1. Create the Order, now including product_id
         $order_number = 'ORD-' . time() . '-' . $user_id;
-        $stmt = $db->prepare("INSERT INTO orders (user_id, order_number, total, status) VALUES (?, ?, ?, 'Pending')");
-        $stmt->bind_param('isd', $user_id, $order_number, $order_total);
+        $stmt = $db->prepare("INSERT INTO orders (user_id, product_id, order_number, total, status) VALUES (?, ?, ?, ?, 'Pending')");
+        $stmt->bind_param('iisd', $user_id, $product['id'], $order_number, $order_total);
         $stmt->execute();
         $order_id = $stmt->insert_id;
 
@@ -76,40 +65,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bind_param('isd', $invoice_id, $item_description, $order_total);
         $stmt->execute();
 
-        // If all queries succeeded, commit the transaction
         $db->commit();
 
-        // Redirect to the newly created invoice
         header("Location: view_invoice.php?id=" . $invoice_id);
         exit;
 
     } catch (mysqli_sql_exception $exception) {
         $db->rollback();
-        // You would log the error here
         die('There was an error processing your order. Please try again.');
     }
 }
-
-
 ?>
 
 <div class="row justify-content-center">
     <div class="col-md-8">
         <h1 class="mb-4">Confirm Your Order</h1>
         <div class="card">
-            <div class="card-header">
-                <h4>Order Summary</h4>
-            </div>
+            <div class="card-header"><h4>Order Summary</h4></div>
             <div class="card-body">
                 <table class="table">
                     <tbody>
                         <tr>
                             <th scope="row">Product:</th>
                             <td><?php echo htmlspecialchars($product['name']); ?></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Description:</th>
-                            <td><?php echo htmlspecialchars($product['description']); ?></td>
                         </tr>
                         <tr>
                             <th scope="row">Billing Cycle:</th>
@@ -126,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </tr>
                     </tbody>
                 </table>
-                <p class="text-muted">An invoice will be generated for this order. You will be able to pay it from your client area.</p>
                 <div class="text-end">
                      <form method="POST">
                         <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
@@ -138,7 +115,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
-
 
 <?php
 $db->close();

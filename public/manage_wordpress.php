@@ -22,6 +22,7 @@ if (!$order_id) {
     exit;
 }
 
+// Refactored query to use the correct product_id join
 $stmt = $db->prepare("SELECT o.domain, o.cpanel_username, s.hostname, s.api_key_1
                      FROM orders o
                      JOIN products p ON o.product_id = p.id
@@ -48,7 +49,6 @@ if (isset($wp_list_result['data'][0]['install_id'])) {
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $install_id) {
     verify_csrf_token();
-
     if (isset($_POST['action']) && $_POST['action'] === 'one_click_login') {
         $login_result = $cpanel->uapi_query($service['cpanel_username'], 'WordPressManager', 'create_user_session', ['install_id' => $install_id, 'user' => 'admin']);
         if (isset($login_result['data']['login_url'])) {
@@ -60,21 +60,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $install_id) {
     }
 }
 
-// --- Fetch Plugin & Theme data if installation is found ---
+// --- Fetch Plugin & Theme data ---
 if ($install_id) {
-    // Fetch plugins
     $plugin_result = $cpanel->wp_cli($service['cpanel_username'], $install_id, 'plugin list --format=json');
-    if (isset($plugin_result['data']['stdout'])) {
-        $plugins = json_decode(base64_decode($plugin_result['data']['stdout']), true);
-    }
-
-    // Fetch themes
+    if (isset($plugin_result['data']['stdout'])) $plugins = json_decode(base64_decode($plugin_result['data']['stdout']), true);
     $theme_result = $cpanel->wp_cli($service['cpanel_username'], $install_id, 'theme list --format=json');
-    if (isset($theme_result['data']['stdout'])) {
-        $themes = json_decode(base64_decode($theme_result['data']['stdout']), true);
-    }
+    if (isset($theme_result['data']['stdout'])) $themes = json_decode(base64_decode($theme_result['data']['stdout']), true);
 }
-
 ?>
 
 <h1 class="mb-4">WordPress Management for <span class="text-primary"><?php echo htmlspecialchars($service['domain']); ?></span></h1>
@@ -82,12 +74,10 @@ if ($install_id) {
 <?php if (!$install_id) echo "<div class='alert alert-warning'>Could not find a WordPress installation for this account. Management features are disabled.</div>"; ?>
 
 <div class="row">
-    <!-- One-Click Login -->
     <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header"><h5><i class="bi bi-box-arrow-in-right"></i> One-Click Login</h5></div>
-            <div class="card-body">
-                <p>Securely log in to your WordPress admin dashboard.</p>
+            <div class="card-body"><p>Securely log in to your WordPress admin dashboard.</p>
                 <form method="POST">
                     <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                     <input type="hidden" name="action" value="one_click_login">
@@ -96,10 +86,6 @@ if ($install_id) {
             </div>
         </div>
     </div>
-
-    <!-- ... Other components ... -->
-
-    <!-- Plugin & Theme Management -->
     <div class="col-md-12 mb-4">
         <div class="card">
             <div class="card-header"><h5><i class="bi bi-plug"></i> Plugin & Theme Management</h5></div>
