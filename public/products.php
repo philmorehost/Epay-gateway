@@ -8,6 +8,23 @@ $products_result = $db->query("SELECT * FROM products WHERE hidden = 0 ORDER BY 
 
 $products_by_category = [];
 while ($product = $products_result->fetch_assoc()) {
+
+    // --- Reseller Pricing Logic ---
+    if (defined('IS_RESELLER_STOREFRONT') && IS_RESELLER_STOREFRONT === true) {
+        $wholesale_discount = (float)$product['wholesale_discount_percent'];
+        $reseller_markup = (float)$GLOBALS['reseller_data']['settings']['retail_markup_percent'];
+
+        // Calculate wholesale price by applying the discount
+        $wholesale_price = $product['price_annually'] * (1 - ($wholesale_discount / 100));
+
+        // Calculate final retail price by applying the reseller's markup
+        $retail_price = $wholesale_price * (1 + ($reseller_markup / 100));
+
+        // Overwrite the price for the storefront view
+        $product['price_annually'] = $retail_price;
+    }
+    // --- End Reseller Pricing Logic ---
+
     $products_by_category[$product['category']][] = $product;
 }
 ?>
@@ -29,7 +46,10 @@ while ($product = $products_result->fetch_assoc()) {
                         <div class="card-body d-flex flex-column">
                             <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
                             <div class="mt-auto">
-                                <h1 class="card-title pricing-card-title">NGN <?php echo number_format($product['price_annually'], 2); ?><small class="text-muted fw-light">/yr</small></h1>
+                                <h1 class="card-title pricing-card-title">
+                                    <?php if(defined('IS_RESELLER_STOREFRONT') && IS_RESELLER_STOREFRONT === true) echo 'USD '; else echo 'NGN '; ?>
+                                    <?php echo number_format($product['price_annually'], 2); ?><small class="text-muted fw-light">/yr</small>
+                                </h1>
                                 <a href="order.php?pid=<?php echo $product['id']; ?>" class="w-100 btn btn-lg btn-primary">Order Now</a>
                             </div>
                         </div>

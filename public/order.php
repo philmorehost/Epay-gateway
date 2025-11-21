@@ -32,13 +32,25 @@ if (!$product) {
     exit;
 }
 
+// --- Reseller Pricing Logic ---
+$order_total = $product['price_annually']; // Default to standard price
+if (defined('IS_RESELLER_STOREFRONT') && IS_RESELLER_STOREFRONT === true) {
+    $wholesale_discount = (float)$product['wholesale_discount_percent'];
+    $reseller_markup = (float)$GLOBALS['reseller_data']['settings']['retail_markup_percent'];
+
+    $wholesale_price = $product['price_annually'] * (1 - ($wholesale_discount / 100));
+    $retail_price = $wholesale_price * (1 + ($reseller_markup / 100));
+
+    $order_total = $retail_price; // Use the calculated retail price for the order
+}
+// --- End Reseller Pricing Logic ---
+
 
 // Handle the order submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf_token(); // CSRF check
 
     $user_id = $_SESSION['user_id'];
-    $order_total = $product['price_annually']; // For simplicity, using annual price
 
     // Use a transaction to ensure atomicity
     $db->begin_transaction();
@@ -105,7 +117,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </tr>
                          <tr>
                             <th scope="row" class="fs-4">Total Due Today:</th>
-                            <td class="fs-4"><strong>NGN <?php echo number_format($product['price_annually'], 2); ?></strong></td>
+                            <td class="fs-4">
+                                <strong>
+                                    <?php if(defined('IS_RESELLER_STOREFRONT') && IS_RESELLER_STOREFRONT === true) echo 'USD '; else echo 'NGN '; ?>
+                                    <?php echo number_format($order_total, 2); ?>
+                                </strong>
+                            </td>
                         </tr>
                     </tbody>
                 </table>

@@ -2,6 +2,20 @@
 // Core Functions Library
 
 /**
+ * Generates a full URL for a given path.
+ * Respects the current host, which is essential for reseller storefronts.
+ *
+ * @param string $path The path to append to the base URL (e.g., 'login.php').
+ * @return string The full absolute URL.
+ */
+function site_url($path = '') {
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    return "{$protocol}://{$host}/{$path}";
+}
+
+
+/**
  * Generates a CSRF token, stores it in the session, and returns it.
  *
  * @return string The generated CSRF token.
