@@ -240,6 +240,10 @@ CREATE TABLE `email_templates` (
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- Insert default welcome email
+INSERT INTO `email_templates` (`name`, `subject`, `body`, `is_system`) VALUES
+('Client Welcome Email', 'Welcome to {company_name}!', '<p>Hi {client_first_name},</p><p>Welcome to {company_name}! We are thrilled to have you on board.</p><p>You can now log in to your client area to manage your account and services.</p><p>Thank you for choosing us!</p><p>Regards,<br>{company_name} Team</p>', 1);
+
 -- --------------------------------------------------------
 
 --

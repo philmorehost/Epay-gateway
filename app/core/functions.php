@@ -1,12 +1,47 @@
 <?php
 // Core Functions Library
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require_once __DIR__ . '/../../vendor/phpmailer/Exception.php';
+require_once __DIR__ . '/../../vendor/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/../../vendor/phpmailer/SMTP.php';
+
+/**
+ * Central function for sending emails.
+ */
+function send_email($db, $to, $subject, $body) {
+    $settings_result = $db->query("SELECT * FROM settings WHERE setting LIKE 'smtp_%' OR setting = 'company_name'");
+    $settings = [];
+    while ($row = $settings_result->fetch_assoc()) {
+        $settings[$row['setting']] = $row['value'];
+    }
+    $mail = new PHPMailer(true);
+    try {
+        $mail->isSMTP();
+        $mail->Host = $settings['smtp_host'] ?? '';
+        $mail->SMTPAuth = true;
+        $mail->Username = $settings['smtp_username'] ?? '';
+        $mail->Password = $settings['smtp_password'] ?? '';
+        $mail->SMTPSecure = $settings['smtp_encryption'] ?? PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = (int)($settings['smtp_port'] ?? 587);
+        $from_name = $settings['company_name'] ?? 'Hostbill';
+        $from_email = $settings['smtp_username'] ?? '';
+        $mail->setFrom($from_email, $from_name);
+        $mail->addAddress($to);
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body = $body;
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        return false;
+    }
+}
+
 /**
  * Generates a full URL for a given path.
- * Respects the current host, which is essential for reseller storefronts.
- *
- * @param string $path The path to append to the base URL (e.g., 'login.php').
- * @return string The full absolute URL.
  */
 function site_url($path = '') {
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
@@ -14,11 +49,8 @@ function site_url($path = '') {
     return "{$protocol}://{$host}/{$path}";
 }
 
-
 /**
- * Generates a CSRF token, stores it in the session, and returns it.
- *
- * @return string The generated CSRF token.
+ * Generates and stores a CSRF token.
  */
 function generate_csrf_token() {
     if (empty($_SESSION['csrf_token'])) {
@@ -28,14 +60,10 @@ function generate_csrf_token() {
 }
 
 /**
- * Validates a submitted CSRF token against the one stored in the session.
- *
- * @param string $token The CSRF token from the form submission.
- * @return bool True if the token is valid, false otherwise.
+ * Validates a submitted CSRF token.
  */
 function validate_csrf_token($token) {
     if (isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token)) {
-        // Token is valid, unset it to prevent reuse
         unset($_SESSION['csrf_token']);
         return true;
     }
@@ -43,9 +71,7 @@ function validate_csrf_token($token) {
 }
 
 /**
- * A helper function to be called at the top of POST request handlers.
- * It checks the request method and validates the CSRF token.
- * Exits with an error if validation fails.
+ * Verifies the CSRF token from a POST request.
  */
 function verify_csrf_token() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {

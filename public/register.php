@@ -15,23 +15,18 @@ $success_message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf_token(); // CSRF check
 
-    // Very basic validation
     if (empty($_POST['first_name']) || empty($_POST['last_name']) || empty($_POST['email']) || empty($_POST['password'])) {
         $error_message = "Please fill in all required fields.";
     } elseif ($_POST['password'] !== $_POST['password_confirm']) {
         $error_message = "Passwords do not match.";
-    } elseif (strlen($_POST['password']) < 8) {
-        $error_message = "Password must be at least 8 characters long.";
-    } elseif (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-        $error_message = "Invalid email address.";
     } elseif (empty($_POST['tos'])) {
         $error_message = "You must agree to the Terms of Service.";
     } else {
         $email = $_POST['email'];
-        // Check if email already exists
         $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->bind_param('s', $email);
         $stmt->execute();
+
         if ($stmt->get_result()->num_rows > 0) {
             $error_message = "An account with this email address already exists.";
         } else {
@@ -41,6 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($stmt->execute()) {
                 $success_message = "Registration successful! You can now <a href='login.php'>log in</a>.";
+
+                // Send Welcome Email
+                $template_stmt = $db->prepare("SELECT * FROM email_templates WHERE name = 'Client Welcome Email'");
+                $template_stmt->execute();
+                $template = $template_stmt->get_result()->fetch_assoc();
+                if ($template) {
+                    $company_name = $db->query("SELECT value FROM settings WHERE setting = 'company_name'")->fetch_assoc()['value'] ?? 'Hostbill';
+                    $subject = str_replace('{company_name}', $company_name, $template['subject']);
+                    $body = str_replace(['{client_first_name}', '{company_name}'], [htmlspecialchars($_POST['first_name']), $company_name], $template['body']);
+                    send_email($db, $email, $subject, $body);
+                }
             } else {
                 $error_message = "Registration failed. Please try again.";
             }
@@ -59,12 +65,8 @@ $db->close();
     <title>Register - Hostbill</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
      <style>
-        body {
-            background-color: #f0f2f5;
-        }
-        .register-card {
-            border-radius: 1rem;
-        }
+        body { background-color: #f0f2f5; }
+        .register-card { border-radius: 1rem; }
     </style>
 </head>
 <body>
@@ -83,36 +85,19 @@ $db->close();
                         <form method="POST">
                             <input type="hidden" name="csrf_token" value="<?php echo generate_csrf_token(); ?>">
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="first_name" class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="first_name" name="first_name" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="last_name" class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name" required>
-                                </div>
+                                <div class="col-md-6 mb-3"><label for="first_name" class="form-label">First Name</label><input type="text" class="form-control" id="first_name" name="first_name" required></div>
+                                <div class="col-md-6 mb-3"><label for="last_name" class="form-label">Last Name</label><input type="text" class="form-control" id="last_name" name="last_name" required></div>
                             </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email address</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
+                            <div class="mb-3"><label for="email" class="form-label">Email address</label><input type="email" class="form-control" id="email" name="email" required></div>
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="password_confirm" class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="password_confirm" name="password_confirm" required>
-                                </div>
+                                <div class="col-md-6 mb-3"><label for="password" class="form-label">Password</label><input type="password" class="form-control" id="password" name="password" required></div>
+                                <div class="col-md-6 mb-3"><label for="password_confirm" class="form-label">Confirm Password</label><input type="password" class="form-control" id="password_confirm" name="password_confirm" required></div>
                             </div>
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="tos" name="tos" value="1">
                                 <label class="form-check-label" for="tos">I agree to the <a href="tos.php">Terms of Service</a></label>
                             </div>
-                            <div class="d-grid">
-                                <button type="submit" class="btn btn-primary">Register</button>
-                            </div>
+                            <div class="d-grid"><button type="submit" class="btn btn-primary">Register</button></div>
                         </form>
                         <?php endif; ?>
                         <div class="text-center mt-3">
