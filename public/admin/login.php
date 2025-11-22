@@ -2,23 +2,39 @@
 require_once '../../app/core/bootstrap.php';
 
 $error = null;
+$ip_address = $_SERVER['REMOTE_ADDR'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = $_POST['email'];
-    $password = $_POST['password'];
+// --- Brute Force Check ---
+$stmt = $db->prepare("SELECT COUNT(*) as attempt_count FROM login_attempts WHERE ip_address = ? AND attempt_time > (NOW() - INTERVAL ? SECOND)");
+$stmt->bind_param('si', $ip_address, LOGIN_BLOCK_TIME);
+$stmt->execute();
+$result = $stmt->get_result()->fetch_assoc();
 
-    $stmt = $db->prepare("SELECT id, password FROM admins WHERE email = ?");
-    $stmt->bind_param('s', $email);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $admin = $result->fetch_assoc();
+if ($result['attempt_count'] >= MAX_LOGIN_ATTEMPTS) {
+    $error = "Too many failed login attempts. Please try again later.";
+} else {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $email = $_POST['email'];
+        $password = $_POST['password'];
 
-    if ($admin && password_verify($password, $admin['password'])) {
-        $_SESSION['admin_id'] = $admin['id'];
-        header('Location: index.php');
-        exit;
-    } else {
-        $error = "Invalid email or password.";
+        $stmt = $db->prepare("SELECT id, password FROM admins WHERE email = ?");
+        $stmt->bind_param('s', $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $admin = $result->fetch_assoc();
+
+        if ($admin && password_verify($password, $admin['password'])) {
+            $_SESSION['admin_id'] = $admin['id'];
+            header('Location: index.php');
+            exit;
+        } else {
+            // Record failed attempt
+            $stmt = $db->prepare("INSERT INTO login_attempts (ip_address) VALUES (?)");
+            $stmt->bind_param('s', $ip_address);
+            $stmt->execute();
+
+            $error = "Invalid email or password.";
+        }
     }
 }
 ?>

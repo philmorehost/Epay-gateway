@@ -2,28 +2,50 @@
 require_once '../app/core/bootstrap.php';
 
 $error = null;
+$ip_address = $_SERVER['REMOTE_ADDR'];
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// --- Brute Force Check ---
+$stmt = $db->prepare("SELECT COUNT(*) as attempt_count FROM login_attempts WHERE ip_address = ? AND attempt_time > (NOW() - INTERVAL ? SECOND)");
+$stmt->bind_param('si', $ip_address, LOGIN_BLOCK_TIME);
+$stmt->execute();
+$result = $stmt->get_result()->fetch_assoc();
+
+if ($result['attempt_count'] >= MAX_LOGIN_ATTEMPTS) {
+    $error = "Too many failed login attempts. Please try again later.";
+} else {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
     $password = $_POST['password'];
 
-    $stmt = $db->prepare("SELECT id, password FROM users WHERE email = ?");
+    $stmt = $db->prepare("SELECT id, password, 2fa_enabled FROM users WHERE email = ?");
     $stmt->bind_param('s', $email);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
     if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user_id'] = $user['id'];
-
-        // Redirect to the intended page or the dashboard
-        $return_to = $_SESSION['return_to'] ?? 'index.php';
-        unset($_SESSION['return_to']);
-        header("Location: $return_to");
-        exit;
+        // Password is correct, now check for 2FA
+        if ($user['2fa_enabled']) {
+            $_SESSION['2fa_user_id'] = $user['id'];
+            header('Location: 2fa_verify.php');
+            exit;
+        } else {
+            // No 2FA, complete the login
+            $_SESSION['user_id'] = $user['id'];
+            $return_to = $_SESSION['return_to'] ?? 'index.php';
+            unset($_SESSION['return_to']);
+            header("Location: $return_to");
+            exit;
+        }
     } else {
+        // Record failed attempt
+        $stmt = $db->prepare("INSERT INTO login_attempts (ip_address) VALUES (?)");
+        $stmt->bind_param('s', $ip_address);
+        $stmt->execute();
+
         $error = "Invalid email or password.";
     }
+}
 }
 
 ?>

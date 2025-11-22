@@ -65,7 +65,7 @@ $products = $db->query("SELECT * FROM products ORDER BY category, name")->fetch_
                             <p class="product-price">$<?php echo number_format($product['price_monthly'], 2); ?><span class="price-period">/mo</span></p>
                             <p>or $<?php echo number_format($product['price_annually'], 2); ?> annually</p>
                         </div>
-                        <a href="order.php?id=<?php echo $product['id']; ?>" class="btn btn-primary w-100 mt-3">Order Now</a>
+                        <a href="order_summary.php?id=<?php echo $product['id']; ?>" class="btn btn-primary w-100 mt-3">Order Now</a>
                     </div>
                 </div>
             <?php endforeach; ?>

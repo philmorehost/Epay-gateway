@@ -27,7 +27,8 @@ CREATE TABLE `email_templates` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 INSERT INTO `email_templates` (`name`, `subject`, `body`) VALUES
-('Welcome Email', 'Welcome to Our Service!', '<h1>Welcome, {client_name}!</h1><p>Thank you for registering. We are excited to have you on board.</p>');
+('Welcome Email', 'Welcome to Our Service!', '<h1>Welcome, {client_name}!</h1><p>Thank you for registering. We are excited to have you on board.</p>'),
+('Invoice Reminder', 'Payment Reminder for Invoice #{invoice_id}', '<h1>Payment Reminder</h1><p>Dear {client_name},</p><p>This is a reminder that Invoice #{invoice_id} for the amount of ${invoice_amount} is due on {invoice_due_date}.</p><p>Please log in to your account to make a payment.</p>');
 
 
 CREATE TABLE `admins` (
@@ -45,6 +46,8 @@ CREATE TABLE `users` (
     `password` varchar(255) NOT NULL,
     `credit_balance` decimal(10,2) NOT NULL DEFAULT '0.00',
     `is_reseller` tinyint(1) NOT NULL DEFAULT '0',
+    `2fa_secret` varchar(255) DEFAULT NULL,
+    `2fa_enabled` tinyint(1) NOT NULL DEFAULT '0',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -59,6 +62,27 @@ CREATE TABLE `reseller_settings` (
     PRIMARY KEY (`user_id`),
     UNIQUE KEY `custom_domain` (`custom_domain`),
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `login_attempts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ip_address` varchar(45) NOT NULL,
+  `attempt_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `ip_address` (`ip_address`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `coupons` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `code` varchar(50) NOT NULL,
+    `type` enum('percentage','fixed') NOT NULL,
+    `value` decimal(10,2) NOT NULL,
+    `max_uses` int(11) NOT NULL DEFAULT '0',
+    `uses` int(11) NOT NULL DEFAULT '0',
+    `expires_at` date DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `customers` (

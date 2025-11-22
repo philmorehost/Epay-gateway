@@ -29,3 +29,7 @@ require_once __DIR__ . '/email.php';
 // Verify the host domain
 require_once __DIR__ . '/host_check.php';
 verify_host();
+
+// --- Security Settings ---
+define('MAX_LOGIN_ATTEMPTS', 5); // Number of failed attempts before blocking
+define('LOGIN_BLOCK_TIME', 300); // Block duration in seconds (5 minutes)

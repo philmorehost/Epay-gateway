@@ -36,6 +36,7 @@
     <div class="mt-4 text-center">
         <a href="add_funds.php" class="btn btn-primary">Add Funds</a>
         <a href="invoices.php" class="btn btn-info">My Invoices</a>
+        <a href="security.php" class="btn btn-warning">Security</a>
         <?php if ($user['is_reseller']): ?>
             <a href="reseller/index.php" class="btn btn-success">Reseller Portal</a>
         <?php else: ?>
