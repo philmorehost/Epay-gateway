@@ -1,5 +1,6 @@
 <?php
 require_once '../app/core/bootstrap.php';
+require_once '../app/modules/Cpanel.php';
 
 // --- PAYSTACK CONFIGURATION (PLACEHOLDERS) ---
 define('PAYSTACK_SECRET_KEY', 'sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
@@ -55,8 +56,37 @@ if ($event->event === 'charge.success') {
                     $stmt->bind_param('di', $invoice['amount'], $invoice['user_id']);
                     $stmt->execute();
                 } else {
-                    // It's a regular invoice, so provision the service
-                    // (e.g., create a hosting account)
+                    // It's a regular product invoice, so check if it needs provisioning
+                    $stmt = $db->prepare("SELECT p.server_type, p.package_name, o.id as order_id FROM invoices i
+                                         JOIN orders o ON i.order_id = o.id
+                                         JOIN products p ON o.product_id = p.id
+                                         WHERE i.id = ?");
+                    $stmt->bind_param('i', $invoice_id);
+                    $stmt->execute();
+                    $provision_data = $stmt->get_result()->fetch_assoc();
+
+                    if ($provision_data && $provision_data['server_type'] === 'cpanel') {
+                        // --- cPanel Provisioning ---
+                        $cpanel = new Cpanel();
+
+                        // For this example, we'll generate a random username and password
+                        // and use the customer's email domain as the main domain.
+                        $user_email_stmt = $db->prepare("SELECT email FROM users WHERE id = ?");
+                        $user_email_stmt->bind_param('i', $invoice['user_id']);
+                        $user_email_stmt->execute();
+                        $user_email = $user_email_stmt->get_result()->fetch_assoc()['email'];
+
+                        $domain = substr(strrchr($user_email, "@"), 1);
+                        $username = 'user' . substr(md5(time()), 0, 6);
+                        $password = 'pass' . substr(md5(rand()), 0, 10) . '!';
+
+                        $cpanel->create_account($domain, $username, $password, $provision_data['package_name']);
+
+                        // Save to hosting_accounts table
+                        $stmt = $db->prepare("INSERT INTO hosting_accounts (order_id, domain, username) VALUES (?, ?, ?)");
+                        $stmt->bind_param('iss', $provision_data['order_id'], $domain, $username);
+                        $stmt->execute();
+                    }
                 }
 
                 $db->commit();

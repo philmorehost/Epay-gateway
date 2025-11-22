@@ -12,7 +12,10 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('smtp_port', '587'),
 ('smtp_username', ''),
 ('smtp_password', ''),
-('smtp_encryption', 'tls');
+('smtp_encryption', 'tls'),
+('whm_host', ''),
+('whm_user', ''),
+('whm_api_token', '');
 
 
 CREATE TABLE `email_templates` (
@@ -85,6 +88,18 @@ CREATE TABLE `coupons` (
     UNIQUE KEY `code` (`code`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `hosting_accounts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `domain` varchar(255) NOT NULL,
+  `username` varchar(100) NOT NULL,
+  `status` varchar(50) NOT NULL DEFAULT 'Active',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `order_id` (`order_id`),
+  FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `customers` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `reseller_user_id` int(11) NOT NULL,
@@ -129,6 +144,8 @@ CREATE TABLE `products` (
     `price_annually` decimal(10,2) NOT NULL DEFAULT '0.00',
     `wholesale_discount_percent` decimal(5,2) NOT NULL DEFAULT '0.00',
     `category` varchar(100) NOT NULL,
+    `server_type` varchar(50) DEFAULT NULL,
+    `package_name` varchar(100) DEFAULT NULL,
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

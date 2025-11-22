@@ -31,6 +31,9 @@ if (!isset($_SESSION['admin_id'])) {
                 <a class="nav-link" href="products.php">Products</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="accounts.php">Accounts</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="invoices.php">Invoices</a>
             </li>
             <li class="nav-item">

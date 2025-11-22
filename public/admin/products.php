@@ -19,15 +19,17 @@ try {
         $price_annually = $_POST['price_annually'];
         $category = $_POST['category'];
         $wholesale_discount_percent = $_POST['wholesale_discount_percent'];
+        $server_type = $_POST['server_type'];
+        $package_name = $_POST['package_name'];
 
         if ($action === 'edit' && $product_id) {
-            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price_monthly = ?, price_annually = ?, category = ?, wholesale_discount_percent = ? WHERE id = ?");
-            $stmt->bind_param('ssddsi', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $product_id);
+            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price_monthly = ?, price_annually = ?, category = ?, wholesale_discount_percent = ?, server_type = ?, package_name = ? WHERE id = ?");
+            $stmt->bind_param('ssddsdssi', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name, $product_id);
             $stmt->execute();
             $success = "Product updated successfully.";
         } elseif ($action === 'add') {
-            $stmt = $db->prepare("INSERT INTO products (name, description, price_monthly, price_annually, category, wholesale_discount_percent) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('ssddsd', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent);
+            $stmt = $db->prepare("INSERT INTO products (name, description, price_monthly, price_annually, category, wholesale_discount_percent, server_type, package_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssddsdds', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name);
             $stmt->execute();
             $success = "Product added successfully.";
         }
@@ -90,6 +92,24 @@ if ($action === 'edit' && $product_id) {
                 <label for="wholesale_discount_percent" class="form-label">Wholesale Discount (%)</label>
                 <input type="number" step="0.01" class="form-control" id="wholesale_discount_percent" name="wholesale_discount_percent" value="<?php echo $product_to_edit['wholesale_discount_percent'] ?? '0.00'; ?>" required>
             </div>
+            <hr>
+            <h5>Provisioning Settings</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="server_type" class="form-label">Server Type</label>
+                    <select class="form-select" id="server_type" name="server_type">
+                        <option value="">None</option>
+                        <option value="cpanel" <?php echo ($product_to_edit['server_type'] ?? '') === 'cpanel' ? 'selected' : ''; ?>>cPanel/WHM</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="package_name" class="form-label">Package Name</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="package_name" name="package_name" value="<?php echo $product_to_edit['package_name'] ?? ''; ?>">
+                        <button class="btn btn-outline-secondary" type="button" id="fetch-packages-btn">Fetch Packages</button>
+                    </div>
+                </div>
+            </div>
 
             <button type="submit" class="btn btn-primary"><?php echo $product_to_edit ? 'Update Product' : 'Add Product'; ?></button>
             <?php if ($product_to_edit): ?>
@@ -133,5 +153,53 @@ if ($action === 'edit' && $product_id) {
         </table>
     </div>
 </div>
+
+<!-- Packages Modal -->
+<div class="modal fade" id="packagesModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Available WHM Packages</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="packages-list">
+                <!-- Content will be loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('fetch-packages-btn').addEventListener('click', function() {
+    var myModal = new bootstrap.Modal(document.getElementById('packagesModal'));
+    var packagesList = document.getElementById('packages-list');
+    packagesList.innerHTML = 'Loading...';
+    myModal.show();
+
+    fetch('ajax_get_packages.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                packagesList.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+            } else {
+                let list = '<ul class="list-group">';
+                data.packages.forEach(pkg => {
+                    list += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                                ${pkg}
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectPackage('${pkg}')">Select</button>
+                             </li>`;
+                });
+                list += '</ul>';
+                packagesList.innerHTML = list;
+            }
+        });
+});
+
+function selectPackage(packageName) {
+    document.getElementById('package_name').value = packageName;
+    var myModal = bootstrap.Modal.getInstance(document.getElementById('packagesModal'));
+    myModal.hide();
+}
+</script>
 
 <?php require_once 'templates/footer.php'; ?>

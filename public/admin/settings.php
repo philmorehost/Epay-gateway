@@ -8,14 +8,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->begin_transaction();
 
         // Settings to update
-        $settings_to_update = [
-            'smtp_host' => $_POST['smtp_host'],
-            'smtp_port' => $_POST['smtp_port'],
-            'smtp_username' => $_POST['smtp_username'],
-            'smtp_password' => $_POST['smtp_password'],
-            'smtp_encryption' => $_POST['smtp_encryption'],
-            'system_email' => $_POST['system_email'],
-        ];
+        $settings_to_update = [];
+        if (isset($_POST['smtp_host'])) { // Check if the SMTP form was submitted
+            $settings_to_update = [
+                'smtp_host' => $_POST['smtp_host'],
+                'smtp_port' => $_POST['smtp_port'],
+                'smtp_username' => $_POST['smtp_username'],
+                'smtp_password' => $_POST['smtp_password'],
+                'smtp_encryption' => $_POST['smtp_encryption'],
+                'system_email' => $_POST['system_email'],
+            ];
+        } elseif (isset($_POST['whm_host'])) { // Check if the WHM form was submitted
+            $settings_to_update = [
+                'whm_host' => $_POST['whm_host'],
+                'whm_user' => $_POST['whm_user'],
+                'whm_api_token' => $_POST['whm_api_token'],
+            ];
+        }
 
         $stmt = $db->prepare("UPDATE settings SET value = ? WHERE setting = ?");
 
@@ -87,5 +96,28 @@ while ($row = $settings_result->fetch_assoc()) {
         </form>
     </div>
 </div>
+
+<div class="card mt-4">
+    <div class="card-header">WHM/cPanel Server Configuration</div>
+    <div class="card-body">
+        <form action="settings.php" method="post">
+             <div class="mb-3">
+                <label for="whm_host" class="form-label">WHM Host</label>
+                <input type="text" class="form-control" id="whm_host" name="whm_host" value="<?php echo htmlspecialchars($settings['whm_host'] ?? ''); ?>" placeholder="e.g., https://your-server.com:2087">
+            </div>
+            <div class="mb-3">
+                <label for="whm_user" class="form-label">WHM Username</label>
+                <input type="text" class="form-control" id="whm_user" name="whm_user" value="<?php echo htmlspecialchars($settings['whm_user'] ?? ''); ?>">
+            </div>
+            <div class="mb-3">
+                <label for="whm_api_token" class="form-label">WHM API Token</label>
+                <input type="password" class="form-control" id="whm_api_token" name="whm_api_token" value="<?php echo htmlspecialchars($settings['whm_api_token'] ?? ''); ?>">
+                <small class="form-text text-muted">Create a token in WHM > Development > Manage API Tokens.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Save WHM Settings</button>
+        </form>
+    </div>
+</div>
+
 
 <?php require_once 'templates/footer.php'; ?>
