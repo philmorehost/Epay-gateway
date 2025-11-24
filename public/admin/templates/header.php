@@ -2,7 +2,7 @@
 require_once '../../app/core/bootstrap.php';
 
 // Check if admin is logged in
-if (!isset($_SESSION['admin_id'])) {
+if (!isset($_SESSION['staff_id'])) {
     header('Location: login.php');
     exit;
 }
@@ -27,9 +27,11 @@ if (!isset($_SESSION['admin_id'])) {
             <li class="nav-item">
                 <a class="nav-link active" href="index.php">Dashboard</a>
             </li>
+            <?php if (has_permission('manage_products')): ?>
             <li class="nav-item">
                 <a class="nav-link" href="products.php">Products</a>
             </li>
+            <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link" href="accounts.php">Accounts</a>
             </li>
@@ -39,21 +41,33 @@ if (!isset($_SESSION['admin_id'])) {
             <li class="nav-item">
                 <a class="nav-link" href="manual_payments.php">Manual Payments</a>
             </li>
+             <?php if (has_permission('manage_coupons')): ?>
             <li class="nav-item">
                 <a class="nav-link" href="coupons.php">Coupons</a>
             </li>
+            <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link" href="#">Clients</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">Resellers</a>
             </li>
+            <?php if (has_permission('manage_settings')): ?>
             <li class="nav-item">
                 <a class="nav-link" href="settings.php">Settings</a>
             </li>
-             <li class="nav-item">
+            <li class="nav-item">
                 <a class="nav-link" href="email_templates.php">Email Templates</a>
             </li>
+            <?php endif; ?>
+            <?php if (has_permission('manage_staff')): ?>
+            <li class="nav-item">
+                <a class="nav-link" href="roles.php">Staff Roles</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="staff.php">Staff Manager</a>
+            </li>
+            <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link" href="logout.php">Logout</a>
             </li>

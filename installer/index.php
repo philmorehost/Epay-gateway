@@ -63,8 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("Database connection failed: " . $mysqli->connect_error);
             }
 
-            // Insert Admin
-            $stmt = $mysqli->prepare("INSERT INTO admins (name, email, password) VALUES (?, ?, ?)");
+            // Insert Admin (now Staff)
+            $stmt = $mysqli->prepare("INSERT INTO staff (name, email, password, role_id) VALUES (?, ?, ?, 1)");
             $stmt->bind_param('sss', $admin_name, $admin_email, $admin_password);
             $stmt->execute();
             $stmt->close();

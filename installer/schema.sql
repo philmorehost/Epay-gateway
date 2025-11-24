@@ -34,13 +34,30 @@ INSERT INTO `email_templates` (`name`, `subject`, `body`) VALUES
 ('Invoice Reminder', 'Payment Reminder for Invoice #{invoice_id}', '<h1>Payment Reminder</h1><p>Dear {client_name},</p><p>This is a reminder that Invoice #{invoice_id} for the amount of ${invoice_amount} is due on {invoice_due_date}.</p><p>Please log in to your account to make a payment.</p>');
 
 
-CREATE TABLE `admins` (
+CREATE TABLE `staff` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `role_id` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `staff_roles` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `staff_permissions` (
+  `role_id` int(11) NOT NULL,
+  `permission` varchar(100) NOT NULL,
+  PRIMARY KEY (`role_id`, `permission`),
+  FOREIGN KEY (`role_id`) REFERENCES `staff_roles`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Create a default Super Admin role
+INSERT INTO `staff_roles` (`id`, `name`) VALUES (1, 'Super Admin');
 
 CREATE TABLE `users` (
     `id` int(11) NOT NULL AUTO_INCREMENT,

@@ -1,5 +1,6 @@
 <?php
 require_once 'templates/header.php';
+require_permission('manage_settings');
 
 // Handle form submission
 $error = $success = null;

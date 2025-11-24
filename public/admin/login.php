@@ -17,14 +17,14 @@ if ($result['attempt_count'] >= MAX_LOGIN_ATTEMPTS) {
         $email = $_POST['email'];
         $password = $_POST['password'];
 
-        $stmt = $db->prepare("SELECT id, password FROM admins WHERE email = ?");
+        $stmt = $db->prepare("SELECT id, password FROM staff WHERE email = ?");
         $stmt->bind_param('s', $email);
         $stmt->execute();
         $result = $stmt->get_result();
-        $admin = $result->fetch_assoc();
+        $staff = $result->fetch_assoc();
 
-        if ($admin && password_verify($password, $admin['password'])) {
-            $_SESSION['admin_id'] = $admin['id'];
+        if ($staff && password_verify($password, $staff['password'])) {
+            $_SESSION['staff_id'] = $staff['id'];
             header('Location: index.php');
             exit;
         } else {

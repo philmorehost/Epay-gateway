@@ -1,5 +1,6 @@
 <?php
 require_once 'templates/header.php';
+require_permission('manage_products');
 
 // Handle form submissions for add/edit/delete
 $action = $_POST['action'] ?? $_GET['action'] ?? null;

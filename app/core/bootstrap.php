@@ -30,6 +30,9 @@ require_once __DIR__ . '/email.php';
 require_once __DIR__ . '/host_check.php';
 verify_host();
 
+// Include the Access Control List system
+require_once __DIR__ . '/acl.php';
+
 // --- Security Settings ---
 define('MAX_LOGIN_ATTEMPTS', 5); // Number of failed attempts before blocking
 define('LOGIN_BLOCK_TIME', 300); // Block duration in seconds (5 minutes)

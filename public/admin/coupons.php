@@ -1,5 +1,6 @@
 <?php
 require_once 'templates/header.php';
+require_permission('manage_coupons');
 
 $error = $success = null;
 
