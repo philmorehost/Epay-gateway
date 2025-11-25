@@ -47,6 +47,9 @@ if (!isset($_SESSION['staff_id'])) {
                 <a class="nav-link" href="domains.php">Domains</a>
             </li>
             <li class="nav-item">
+                <a class="nav-link" href="payouts.php">Payouts</a>
+            </li>
+            <li class="nav-item">
                 <a class="nav-link" href="manual_payments.php">Manual Payments</a>
             </li>
              <?php if (has_permission('manage_coupons')): ?>

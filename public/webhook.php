@@ -105,6 +105,31 @@ if ($event->event === 'charge.success') {
                 }
 
                 $db->commit();
+
+                // --- Affiliate Commission Logic ---
+                // Check if this is a referred user's first paid invoice
+                $ref_stmt = $db->prepare("SELECT affiliate_user_id FROM affiliate_referrals WHERE referred_user_id = ?");
+                $ref_stmt->bind_param('i', $invoice['user_id']);
+                $ref_stmt->execute();
+                $referral = $ref_stmt->get_result()->fetch_assoc();
+
+                if ($referral) {
+                    $paid_invoices_stmt = $db->prepare("SELECT COUNT(id) as count FROM invoices WHERE user_id = ? AND status = 'Paid'");
+                    $paid_invoices_stmt->bind_param('i', $invoice['user_id']);
+                    $paid_invoices_stmt->execute();
+                    $paid_count = $paid_invoices_stmt->get_result()->fetch_assoc()['count'];
+
+                    if ($paid_count === 1) { // This is the first paid invoice
+                        $commission_rate = (float)($settings['affiliate_commission_percentage'] ?? 0);
+                        if ($commission_rate > 0) {
+                            $commission_amount = $invoice['amount'] * ($commission_rate / 100);
+
+                            $update_aff_stmt = $db->prepare("UPDATE affiliates SET commission_balance = commission_balance + ? WHERE user_id = ?");
+                            $update_aff_stmt->bind_param('di', $commission_amount, $referral['affiliate_user_id']);
+                            $update_aff_stmt->execute();
+                        }
+                    }
+                }
             }
 
             // In a real application, you might also:

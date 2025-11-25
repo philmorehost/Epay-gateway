@@ -33,6 +33,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bind_param('sss', $name, $email, $hashed_password);
 
             if ($stmt->execute()) {
+                $new_user_id = $db->insert_id;
+
+                // Check for affiliate referral
+                if (isset($_COOKIE['affiliate_ref'])) {
+                    $referral_code = $_COOKIE['affiliate_ref'];
+                    $stmt = $db->prepare("SELECT user_id FROM affiliates WHERE referral_code = ?");
+                    $stmt->bind_param('s', $referral_code);
+                    $stmt->execute();
+                    $affiliate = $stmt->get_result()->fetch_assoc();
+                    if ($affiliate) {
+                        $stmt = $db->prepare("INSERT INTO affiliate_referrals (referred_user_id, affiliate_user_id) VALUES (?, ?)");
+                        $stmt->bind_param('ii', $new_user_id, $affiliate['user_id']);
+                        $stmt->execute();
+                        // Clear the cookie after use
+                        setcookie('affiliate_ref', '', time() - 3600, "/");
+                    }
+                }
+
                 // Send welcome email
                 $template_result = $db->query("SELECT * FROM email_templates WHERE name = 'Welcome Email'");
                 if ($template = $template_result->fetch_assoc()) {

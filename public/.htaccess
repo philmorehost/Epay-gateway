@@ -1,0 +1,3 @@
+RewriteEngine On
+RewriteCond %{QUERY_STRING} ref=(.*)
+RewriteRule ^$ ref.php?ref=%1 [L]

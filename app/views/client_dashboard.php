@@ -38,6 +38,7 @@
         <a href="my_domains.php" class="btn btn-secondary">My Domains</a>
         <a href="invoices.php" class="btn btn-info">My Invoices</a>
         <a href="security.php" class="btn btn-warning">Security</a>
+        <a href="affiliates.php" class="btn btn-light">Affiliate Program</a>
         <?php if ($user['is_reseller']): ?>
             <a href="reseller/index.php" class="btn btn-success">Reseller Portal</a>
         <?php else: ?>

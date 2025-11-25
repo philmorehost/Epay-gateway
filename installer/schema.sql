@@ -21,7 +21,9 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('connectreseller_reseller_id', ''),
 ('base_currency', 'NGN'),
 ('secondary_currency', 'USD'),
-('usd_conversion_rate', '1.00');
+('usd_conversion_rate', '1.00'),
+('affiliate_commission_percentage', '10.00'),
+('affiliate_min_payout', '50.00');
 
 
 CREATE TABLE `email_templates` (
@@ -134,6 +136,45 @@ CREATE TABLE `domains` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `domain_name` (`domain_name`),
     FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `affiliates` (
+    `user_id` int(11) NOT NULL,
+    `referral_code` varchar(50) NOT NULL,
+    `commission_balance` decimal(10,2) NOT NULL DEFAULT '0.00',
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`user_id`),
+    UNIQUE KEY `referral_code` (`referral_code`),
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `affiliate_clicks` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `affiliate_user_id` int(11) NOT NULL,
+    `ip_address` varchar(45) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`affiliate_user_id`) REFERENCES `affiliates`(`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `affiliate_referrals` (
+    `referred_user_id` int(11) NOT NULL,
+    `affiliate_user_id` int(11) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`referred_user_id`),
+    FOREIGN KEY (`referred_user_id`) REFERENCES `users`(`id`),
+    FOREIGN KEY (`affiliate_user_id`) REFERENCES `affiliates`(`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `affiliate_payouts` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `affiliate_user_id` int(11) NOT NULL,
+    `amount` decimal(10,2) NOT NULL,
+    `status` varchar(50) NOT NULL DEFAULT 'Pending',
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    FOREIGN KEY (`affiliate_user_id`) REFERENCES `affiliates`(`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `customers` (

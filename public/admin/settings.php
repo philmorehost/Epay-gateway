@@ -36,6 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'base_currency' => $_POST['base_currency'],
                 'secondary_currency' => $_POST['secondary_currency'],
                 'usd_conversion_rate' => $_POST['usd_conversion_rate'],
+                'affiliate_commission_percentage' => $_POST['affiliate_commission_percentage'],
+                'affiliate_min_payout' => $_POST['affiliate_min_payout'],
             ];
         }
 
@@ -172,6 +174,18 @@ while ($row = $settings_result->fetch_assoc()) {
             <div class="mb-3">
                 <label for="usd_conversion_rate" class="form-label">Secondary Currency Conversion Rate (to 1 Base Currency)</label>
                 <input type="number" step="0.01" class="form-control" id="usd_conversion_rate" name="usd_conversion_rate" value="<?php echo htmlspecialchars($settings['usd_conversion_rate'] ?? '1.00'); ?>">
+            </div>
+            <hr>
+            <h5>Affiliate Settings</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="affiliate_commission_percentage" class="form-label">Commission Percentage (%)</label>
+                    <input type="number" step="0.01" class="form-control" id="affiliate_commission_percentage" name="affiliate_commission_percentage" value="<?php echo htmlspecialchars($settings['affiliate_commission_percentage'] ?? '10.00'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="affiliate_min_payout" class="form-label">Minimum Payout Amount</label>
+                    <input type="number" step="0.01" class="form-control" id="affiliate_min_payout" name="affiliate_min_payout" value="<?php echo htmlspecialchars($settings['affiliate_min_payout'] ?? '50.00'); ?>">
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Save Financial Settings</button>
         </form>
