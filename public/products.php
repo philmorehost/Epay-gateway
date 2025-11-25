@@ -3,6 +3,10 @@ require_once '../app/core/bootstrap.php';
 
 // Fetch products to display
 $products = $db->query("SELECT * FROM products ORDER BY category, name")->fetch_all(MYSQLI_ASSOC);
+
+// Fetch base currency for display
+$currency_setting = $db->query("SELECT value FROM settings WHERE setting = 'base_currency'")->fetch_assoc();
+$base_currency = $currency_setting['value'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -62,8 +66,8 @@ $products = $db->query("SELECT * FROM products ORDER BY category, name")->fetch_
                         <div class="product-card-body">
                             <h3 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h3>
                             <p><?php echo htmlspecialchars($product['description']); ?></p>
-                            <p class="product-price">$<?php echo number_format($product['price_monthly'], 2); ?><span class="price-period">/mo</span></p>
-                            <p>or $<?php echo number_format($product['price_annually'], 2); ?> annually</p>
+                            <p class="product-price"><?php echo htmlspecialchars($base_currency); ?> <?php echo number_format($product['price_monthly'], 2); ?><span class="price-period">/mo</span></p>
+                            <p>or <?php echo htmlspecialchars($base_currency); ?> <?php echo number_format($product['price_annually'], 2); ?> annually</p>
                         </div>
                         <a href="order_summary.php?id=<?php echo $product['id']; ?>" class="btn btn-primary w-100 mt-3">Order Now</a>
                     </div>

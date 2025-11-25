@@ -38,6 +38,14 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $credit_balance = $user['credit_balance'];
 
+// Fetch currency settings for display
+$settings_result = $db->query("SELECT * FROM settings WHERE setting IN ('base_currency', 'secondary_currency')");
+$settings = [];
+while ($row = $settings_result->fetch_assoc()) {
+    $settings[$row['setting']] = $row['value'];
+}
+$base_currency = $settings['base_currency'] ?? '';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -79,13 +87,13 @@ $credit_balance = $user['credit_balance'];
                 <tbody>
                     <tr>
                         <td><?php echo htmlspecialchars($invoice['product_name']); ?></td>
-                        <td class="text-end">$<?php echo number_format($invoice['amount'], 2); ?></td>
+                        <td class="text-end"><?php echo htmlspecialchars($base_currency); ?> <?php echo number_format($invoice['amount'], 2); ?></td>
                     </tr>
                 </tbody>
                 <tfoot>
                     <tr>
                         <th class="text-end">Total:</th>
-                        <th class="text-end">$<?php echo number_format($invoice['amount'], 2); ?></th>
+                        <th class="text-end"><?php echo htmlspecialchars($base_currency); ?> <?php echo number_format($invoice['amount'], 2); ?></th>
                     </tr>
                 </tfoot>
             </table>
@@ -106,7 +114,14 @@ $credit_balance = $user['credit_balance'];
             <hr>
             <div class="text-center mt-4">
                 <h5>Other Payment Methods</h5>
-                <a href="pay.php?id=<?php echo $invoice['id']; ?>" class="btn btn-success btn-lg mx-2">Pay with Paystack</a>
+                <form action="pay.php" method="get" class="d-inline">
+                    <input type="hidden" name="id" value="<?php echo $invoice['id']; ?>">
+                    <select name="currency" class="form-select-sm">
+                        <option value="<?php echo $settings['base_currency']; ?>"><?php echo $settings['base_currency']; ?></option>
+                        <option value="<?php echo $settings['secondary_currency']; ?>"><?php echo $settings['secondary_currency']; ?></option>
+                    </select>
+                    <button type="submit" class="btn btn-success btn-lg mx-2">Pay with Paystack</button>
+                </form>
                 <a href="manual_payment.php?id=<?php echo $invoice['id']; ?>&method=bank" class="btn btn-secondary btn-lg mx-2">Pay with Bank Transfer</a>
                 <a href="manual_payment.php?id=<?php echo $invoice['id']; ?>&method=crypto" class="btn btn-secondary btn-lg mx-2">Pay with Cryptocurrency</a>
             </div>

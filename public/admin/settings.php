@@ -28,6 +28,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (isset($_POST['tax_rate'])) { // Check if the Financial form was submitted
             $settings_to_update = [
                 'tax_rate' => $_POST['tax_rate'],
+                'base_currency' => $_POST['base_currency'],
+                'secondary_currency' => $_POST['secondary_currency'],
+                'usd_conversion_rate' => $_POST['usd_conversion_rate'],
             ];
         }
 
@@ -131,6 +134,22 @@ while ($row = $settings_result->fetch_assoc()) {
             <div class="mb-3">
                 <label for="tax_rate" class="form-label">Global Tax Rate (%)</label>
                 <input type="number" step="0.01" class="form-control" id="tax_rate" name="tax_rate" value="<?php echo htmlspecialchars($settings['tax_rate'] ?? '0.00'); ?>">
+            </div>
+            <hr>
+            <h5>Multi-Currency Settings</h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="base_currency" class="form-label">Base Currency</label>
+                    <input type="text" class="form-control" id="base_currency" name="base_currency" value="<?php echo htmlspecialchars($settings['base_currency'] ?? 'NGN'); ?>">
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="secondary_currency" class="form-label">Secondary Currency</label>
+                    <input type="text" class="form-control" id="secondary_currency" name="secondary_currency" value="<?php echo htmlspecialchars($settings['secondary_currency'] ?? 'USD'); ?>">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="usd_conversion_rate" class="form-label">Secondary Currency Conversion Rate (to 1 Base Currency)</label>
+                <input type="number" step="0.01" class="form-control" id="usd_conversion_rate" name="usd_conversion_rate" value="<?php echo htmlspecialchars($settings['usd_conversion_rate'] ?? '1.00'); ?>">
             </div>
             <button type="submit" class="btn btn-primary">Save Financial Settings</button>
         </form>

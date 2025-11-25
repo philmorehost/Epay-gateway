@@ -57,6 +57,10 @@ if ($action === 'edit' && $product_id) {
     $stmt->execute();
     $product_to_edit = $stmt->get_result()->fetch_assoc();
 }
+
+// Fetch base currency for display
+$currency_setting = $db->query("SELECT value FROM settings WHERE setting = 'base_currency'")->fetch_assoc();
+$base_currency = $currency_setting['value'] ?? '';
 ?>
 <div class="card mb-4">
     <div class="card-header"><?php echo $product_to_edit ? 'Edit Product' : 'Add New Product'; ?></div>
@@ -77,11 +81,11 @@ if ($action === 'edit' && $product_id) {
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label for="price_monthly" class="form-label">Monthly Price</label>
+                    <label for="price_monthly" class="form-label">Monthly Price (<?php echo $base_currency; ?>)</label>
                     <input type="number" step="0.01" class="form-control" id="price_monthly" name="price_monthly" value="<?php echo $product_to_edit['price_monthly'] ?? ''; ?>" required>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="price_annually" class="form-label">Annual Price</label>
+                    <label for="price_annually" class="form-label">Annual Price (<?php echo $base_currency; ?>)</label>
                     <input type="number" step="0.01" class="form-control" id="price_annually" name="price_annually" value="<?php echo $product_to_edit['price_annually'] ?? ''; ?>" required>
                 </div>
             </div>
@@ -141,8 +145,8 @@ if ($action === 'edit' && $product_id) {
                     <tr>
                         <td><?php echo htmlspecialchars($product['name']); ?></td>
                         <td><?php echo htmlspecialchars($product['category']); ?></td>
-                        <td>$<?php echo number_format($product['price_monthly'], 2); ?></td>
-                        <td>$<?php echo number_format($product['price_annually'], 2); ?></td>
+                        <td><?php echo htmlspecialchars($base_currency); ?> <?php echo number_format($product['price_monthly'], 2); ?></td>
+                        <td><?php echo htmlspecialchars($base_currency); ?> <?php echo number_format($product['price_annually'], 2); ?></td>
                         <td><?php echo number_format($product['wholesale_discount_percent'], 2); ?>%</td>
                         <td>
                             <a href="?action=edit&id=<?php echo $product['id']; ?>" class="btn btn-sm btn-primary">Edit</a>

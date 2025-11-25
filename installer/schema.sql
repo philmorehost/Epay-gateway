@@ -16,7 +16,10 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('whm_host', ''),
 ('whm_user', ''),
 ('whm_api_token', ''),
-('tax_rate', '0.00');
+('tax_rate', '0.00'),
+('base_currency', 'NGN'),
+('secondary_currency', 'USD'),
+('usd_conversion_rate', '1.00');
 
 
 CREATE TABLE `email_templates` (

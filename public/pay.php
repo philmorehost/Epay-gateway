@@ -16,10 +16,15 @@ if (!$invoice_id) {
 // --- PAYSTACK CONFIGURATION (PLACEHOLDERS) ---
 // In a real application, these should be stored in the database settings
 define('PAYSTACK_SECRET_KEY', 'sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-$base_url = 'http://localhost:8000'; // This should come from a system setting
 
 try {
-    // 1. Fetch invoice and user details
+    // 1. Fetch settings, invoice, and user details
+    $settings_result = $db->query("SELECT * FROM settings WHERE setting IN ('base_url', 'base_currency', 'secondary_currency', 'usd_conversion_rate')");
+    $settings = [];
+    while ($row = $settings_result->fetch_assoc()) {
+        $settings[$row['setting']] = $row['value'];
+    }
+
     $stmt = $db->prepare(
         "SELECT i.amount, u.email
          FROM invoices i
@@ -34,15 +39,24 @@ try {
         throw new Exception("Invoice not found.");
     }
 
-    // 2. Prepare data for Paystack API
-    $amount_in_kobo = $invoice['amount'] * 100;
+    // 2. Handle currency conversion
+    $selected_currency = $_GET['currency'] ?? $settings['base_currency'];
+    $amount_to_pay = $invoice['amount'];
+
+    if ($selected_currency === $settings['secondary_currency']) {
+        $amount_to_pay *= (float)$settings['usd_conversion_rate'];
+    }
+
+    // 3. Prepare data for Paystack API
+    $amount_in_kobo = round($amount_to_pay * 100);
     $reference = 'INV-' . $invoice_id . '-' . time();
-    $callback_url = $base_url . '/verify_payment.php';
+    $callback_url = $settings['base_url'] . '/verify_payment.php';
 
     $post_data = [
         'email' => $invoice['email'],
         'amount' => $amount_in_kobo,
         'reference' => $reference,
+        'currency' => $selected_currency,
         'callback_url' => $callback_url,
     ];
 
