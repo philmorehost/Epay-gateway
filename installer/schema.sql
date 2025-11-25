@@ -15,7 +15,8 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('smtp_encryption', 'tls'),
 ('whm_host', ''),
 ('whm_user', ''),
-('whm_api_token', '');
+('whm_api_token', ''),
+('tax_rate', '0.00');
 
 
 CREATE TABLE `email_templates` (
@@ -147,6 +148,7 @@ CREATE TABLE `invoices` (
     `status` varchar(50) NOT NULL DEFAULT 'Unpaid',
     `due_date` date NOT NULL,
     `is_credit_invoice` tinyint(1) NOT NULL DEFAULT '0',
+    `tax_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),

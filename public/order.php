@@ -34,6 +34,11 @@ try {
     $final_amount = $product['price_monthly'];
     $coupon_id_to_update = null;
 
+    // Fetch tax rate
+    $tax_rate_setting = $db->query("SELECT value FROM settings WHERE setting = 'tax_rate'")->fetch_assoc();
+    $tax_rate = (float)($tax_rate_setting['value'] ?? 0);
+    $tax_amount = 0;
+
     // Validate coupon if provided
     if (!empty($coupon_code)) {
         $stmt = $db->prepare("SELECT * FROM coupons WHERE code = ? AND (expires_at IS NULL OR expires_at >= CURDATE()) AND (max_uses = 0 OR uses < max_uses)");
@@ -54,6 +59,12 @@ try {
         }
     }
 
+    // Calculate tax on the final amount (after discount)
+    if ($tax_rate > 0) {
+        $tax_amount = $final_amount * ($tax_rate / 100);
+        $final_amount += $tax_amount;
+    }
+
     $db->begin_transaction();
 
     // Create the order
@@ -64,8 +75,8 @@ try {
 
     // Create the invoice
     $due_date = date('Y-m-d', strtotime('+14 days'));
-    $stmt = $db->prepare("INSERT INTO invoices (user_id, order_id, amount, due_date) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param('iids', $_SESSION['user_id'], $order_id, $final_amount, $due_date);
+    $stmt = $db->prepare("INSERT INTO invoices (user_id, order_id, amount, tax_amount, due_date) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param('iidds', $_SESSION['user_id'], $order_id, $final_amount, $tax_amount, $due_date);
     $stmt->execute();
 
     // Increment coupon usage

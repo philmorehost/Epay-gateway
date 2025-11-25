@@ -25,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'whm_user' => $_POST['whm_user'],
                 'whm_api_token' => $_POST['whm_api_token'],
             ];
+        } elseif (isset($_POST['tax_rate'])) { // Check if the Financial form was submitted
+            $settings_to_update = [
+                'tax_rate' => $_POST['tax_rate'],
+            ];
         }
 
         $stmt = $db->prepare("UPDATE settings SET value = ? WHERE setting = ?");
@@ -116,6 +120,19 @@ while ($row = $settings_result->fetch_assoc()) {
                 <small class="form-text text-muted">Create a token in WHM > Development > Manage API Tokens.</small>
             </div>
             <button type="submit" class="btn btn-primary">Save WHM Settings</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">Financial Settings</div>
+    <div class="card-body">
+        <form action="settings.php" method="post">
+            <div class="mb-3">
+                <label for="tax_rate" class="form-label">Global Tax Rate (%)</label>
+                <input type="number" step="0.01" class="form-control" id="tax_rate" name="tax_rate" value="<?php echo htmlspecialchars($settings['tax_rate'] ?? '0.00'); ?>">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Financial Settings</button>
         </form>
     </div>
 </div>

@@ -35,6 +35,11 @@ if (!isset($_SESSION['staff_id'])) {
             <li class="nav-item">
                 <a class="nav-link" href="accounts.php">Accounts</a>
             </li>
+            <?php if (has_permission('view_reports')): ?>
+            <li class="nav-item">
+                <a class="nav-link" href="reports.php">Reports</a>
+            </li>
+            <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link" href="invoices.php">Invoices</a>
             </li>
