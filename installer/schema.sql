@@ -17,6 +17,8 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('whm_user', ''),
 ('whm_api_token', ''),
 ('tax_rate', '0.00'),
+('connectreseller_api_key', ''),
+('connectreseller_reseller_id', ''),
 ('base_currency', 'NGN'),
 ('secondary_currency', 'USD'),
 ('usd_conversion_rate', '1.00');
@@ -121,6 +123,19 @@ CREATE TABLE `hosting_accounts` (
   FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `domains` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `order_id` int(11) NOT NULL,
+    `domain_name` varchar(255) NOT NULL,
+    `registrar` varchar(100) NOT NULL,
+    `status` varchar(50) NOT NULL DEFAULT 'Active',
+    `expires_at` date DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `domain_name` (`domain_name`),
+    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `customers` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `reseller_user_id` int(11) NOT NULL,
@@ -136,6 +151,7 @@ CREATE TABLE `orders` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `user_id` int(11) NOT NULL,
     `product_id` int(11) NOT NULL,
+    `domain_name` varchar(255) DEFAULT NULL,
     `status` varchar(50) NOT NULL DEFAULT 'Pending',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -162,6 +178,8 @@ CREATE TABLE `products` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `name` varchar(255) NOT NULL,
     `description` text,
+    `product_type` enum('hosting','domain') NOT NULL DEFAULT 'hosting',
+    `tld` varchar(50) DEFAULT NULL,
     `price_monthly` decimal(10,2) NOT NULL DEFAULT '0.00',
     `price_annually` decimal(10,2) NOT NULL DEFAULT '0.00',
     `wholesale_discount_percent` decimal(5,2) NOT NULL DEFAULT '0.00',

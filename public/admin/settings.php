@@ -25,6 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'whm_user' => $_POST['whm_user'],
                 'whm_api_token' => $_POST['whm_api_token'],
             ];
+        } elseif (isset($_POST['connectreseller_api_key'])) {
+            $settings_to_update = [
+                'connectreseller_api_key' => $_POST['connectreseller_api_key'],
+                'connectreseller_reseller_id' => $_POST['connectreseller_reseller_id'],
+            ];
         } elseif (isset($_POST['tax_rate'])) { // Check if the Financial form was submitted
             $settings_to_update = [
                 'tax_rate' => $_POST['tax_rate'],
@@ -101,6 +106,23 @@ while ($row = $settings_result->fetch_assoc()) {
             </div>
 
             <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">ConnectReseller API Settings</div>
+    <div class="card-body">
+        <form action="settings.php" method="post">
+            <div class="mb-3">
+                <label for="connectreseller_api_key" class="form-label">API Key</label>
+                <input type="password" class="form-control" id="connectreseller_api_key" name="connectreseller_api_key" value="<?php echo htmlspecialchars($settings['connectreseller_api_key'] ?? ''); ?>">
+            </div>
+            <div class="mb-3">
+                <label for="connectreseller_reseller_id" class="form-label">Reseller ID</label>
+                <input type="text" class="form-control" id="connectreseller_reseller_id" name="connectreseller_reseller_id" value="<?php echo htmlspecialchars($settings['connectreseller_reseller_id'] ?? ''); ?>">
+            </div>
+            <button type="submit" class="btn btn-primary">Save ConnectReseller Settings</button>
         </form>
     </div>
 </div>

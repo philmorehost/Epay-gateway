@@ -22,15 +22,17 @@ try {
         $wholesale_discount_percent = $_POST['wholesale_discount_percent'];
         $server_type = $_POST['server_type'];
         $package_name = $_POST['package_name'];
+        $product_type = $_POST['product_type'];
+        $tld = $_POST['tld'];
 
         if ($action === 'edit' && $product_id) {
-            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, price_monthly = ?, price_annually = ?, category = ?, wholesale_discount_percent = ?, server_type = ?, package_name = ? WHERE id = ?");
-            $stmt->bind_param('ssddsdssi', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name, $product_id);
+            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, product_type = ?, tld = ?, price_monthly = ?, price_annually = ?, category = ?, wholesale_discount_percent = ?, server_type = ?, package_name = ? WHERE id = ?");
+            $stmt->bind_param('ssssddsdssi', $name, $description, $product_type, $tld, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name, $product_id);
             $stmt->execute();
             $success = "Product updated successfully.";
         } elseif ($action === 'add') {
-            $stmt = $db->prepare("INSERT INTO products (name, description, price_monthly, price_annually, category, wholesale_discount_percent, server_type, package_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('ssddsdds', $name, $description, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name);
+            $stmt = $db->prepare("INSERT INTO products (name, description, product_type, tld, price_monthly, price_annually, category, wholesale_discount_percent, server_type, package_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssssddsdss', $name, $description, $product_type, $tld, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name);
             $stmt->execute();
             $success = "Product added successfully.";
         }
@@ -71,9 +73,22 @@ $base_currency = $currency_setting['value'] ?? '';
                 <input type="hidden" name="product_id" value="<?php echo $product_to_edit['id']; ?>">
             <?php endif; ?>
 
-            <div class="mb-3">
-                <label for="name" class="form-label">Product Name</label>
-                <input type="text" class="form-control" id="name" name="name" value="<?php echo $product_to_edit['name'] ?? ''; ?>" required>
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="name" class="form-label">Product Name</label>
+                    <input type="text" class="form-control" id="name" name="name" value="<?php echo $product_to_edit['name'] ?? ''; ?>" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="product_type" class="form-label">Product Type</label>
+                    <select class="form-select" name="product_type">
+                        <option value="hosting" <?php echo ($product_to_edit['product_type'] ?? '') === 'hosting' ? 'selected' : ''; ?>>Hosting</option>
+                        <option value="domain" <?php echo ($product_to_edit['product_type'] ?? '') === 'domain' ? 'selected' : ''; ?>>Domain</option>
+                    </select>
+                </div>
+            </div>
+             <div class="mb-3">
+                <label for="tld" class="form-label">TLD (for domains, e.g., .com)</label>
+                <input type="text" class="form-control" id="tld" name="tld" value="<?php echo $product_to_edit['tld'] ?? ''; ?>">
             </div>
             <div class="mb-3">
                 <label for="description" class="form-label">Description</label>

@@ -1,6 +1,7 @@
 <?php
 require_once '../app/core/bootstrap.php';
 require_once '../app/modules/Cpanel.php';
+require_once '../app/modules/ConnectReseller.php';
 
 // --- PAYSTACK CONFIGURATION (PLACEHOLDERS) ---
 define('PAYSTACK_SECRET_KEY', 'sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
@@ -57,7 +58,7 @@ if ($event->event === 'charge.success') {
                     $stmt->execute();
                 } else {
                     // It's a regular product invoice, so check if it needs provisioning
-                    $stmt = $db->prepare("SELECT p.server_type, p.package_name, o.id as order_id FROM invoices i
+                    $stmt = $db->prepare("SELECT p.product_type, p.server_type, p.package_name, o.id as order_id, o.domain_name FROM invoices i
                                          JOIN orders o ON i.order_id = o.id
                                          JOIN products p ON o.product_id = p.id
                                          WHERE i.id = ?");
@@ -65,27 +66,41 @@ if ($event->event === 'charge.success') {
                     $stmt->execute();
                     $provision_data = $stmt->get_result()->fetch_assoc();
 
-                    if ($provision_data && $provision_data['server_type'] === 'cpanel') {
-                        // --- cPanel Provisioning ---
-                        $cpanel = new Cpanel();
+                    if ($provision_data) {
+                        if ($provision_data['server_type'] === 'cpanel') {
+                            // --- cPanel Provisioning ---
+                            $cpanel = new Cpanel();
 
-                        // For this example, we'll generate a random username and password
-                        // and use the customer's email domain as the main domain.
-                        $user_email_stmt = $db->prepare("SELECT email FROM users WHERE id = ?");
-                        $user_email_stmt->bind_param('i', $invoice['user_id']);
-                        $user_email_stmt->execute();
-                        $user_email = $user_email_stmt->get_result()->fetch_assoc()['email'];
+                            $user_details_stmt = $db->prepare("SELECT name, email FROM users WHERE id = ?");
+                            $user_details_stmt->bind_param('i', $invoice['user_id']);
+                            $user_details_stmt->execute();
+                            $user_details = $user_details_stmt->get_result()->fetch_assoc();
 
-                        $domain = substr(strrchr($user_email, "@"), 1);
-                        $username = 'user' . substr(md5(time()), 0, 6);
-                        $password = 'pass' . substr(md5(rand()), 0, 10) . '!';
+                            $domain = substr(strrchr($user_details['email'], "@"), 1);
+                            $username = 'user' . substr(md5(time()), 0, 6);
+                            $password = 'pass' . substr(md5(rand()), 0, 10) . '!';
 
-                        $cpanel->create_account($domain, $username, $password, $provision_data['package_name']);
+                            $cpanel->create_account($domain, $username, $password, $provision_data['package_name']);
 
-                        // Save to hosting_accounts table
-                        $stmt = $db->prepare("INSERT INTO hosting_accounts (order_id, domain, username) VALUES (?, ?, ?)");
-                        $stmt->bind_param('iss', $provision_data['order_id'], $domain, $username);
-                        $stmt->execute();
+                            $stmt = $db->prepare("INSERT INTO hosting_accounts (order_id, domain, username) VALUES (?, ?, ?)");
+                            $stmt->bind_param('iss', $provision_data['order_id'], $domain, $username);
+                            $stmt->execute();
+                        } elseif ($provision_data['product_type'] === 'domain') {
+                            // --- Domain Registration ---
+                            $connect_reseller = new ConnectReseller();
+
+                            $user_details_stmt = $db->prepare("SELECT name, email FROM users WHERE id = ?");
+                            $user_details_stmt->bind_param('i', $invoice['user_id']);
+                            $user_details_stmt->execute();
+                            $customer_details = $user_details_stmt->get_result()->fetch_assoc();
+
+                            $connect_reseller->register_domain($provision_data['domain_name'], $customer_details);
+
+                            $expires_at = date('Y-m-d', strtotime('+1 year'));
+                            $stmt = $db->prepare("INSERT INTO domains (order_id, domain_name, registrar, expires_at) VALUES (?, ?, 'ConnectReseller', ?)");
+                            $stmt->bind_param('iss', $provision_data['order_id'], $provision_data['domain_name'], $expires_at);
+                            $stmt->execute();
+                        }
                     }
                 }
 

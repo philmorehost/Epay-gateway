@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $product_id = $_POST['product_id'] ?? null;
 $coupon_code = $_POST['coupon_code'] ?? null;
+$domain_name = $_POST['domain_name'] ?? null;
 
 if (!$product_id) {
     header('Location: products.php');
@@ -22,7 +23,7 @@ if (!$product_id) {
 
 try {
     // Fetch product details
-    $stmt = $db->prepare("SELECT price_monthly FROM products WHERE id = ?");
+    $stmt = $db->prepare("SELECT * FROM products WHERE id = ?");
     $stmt->bind_param('i', $product_id);
     $stmt->execute();
     $product = $stmt->get_result()->fetch_assoc();
@@ -31,7 +32,7 @@ try {
         throw new Exception("Product not found.");
     }
 
-    $final_amount = $product['price_monthly'];
+    $final_amount = ($product['product_type'] === 'domain') ? $product['price_annually'] : $product['price_monthly'];
     $coupon_id_to_update = null;
 
     // Fetch tax rate
@@ -68,8 +69,8 @@ try {
     $db->begin_transaction();
 
     // Create the order
-    $stmt = $db->prepare("INSERT INTO orders (user_id, product_id) VALUES (?, ?)");
-    $stmt->bind_param('ii', $_SESSION['user_id'], $product_id);
+    $stmt = $db->prepare("INSERT INTO orders (user_id, product_id, domain_name) VALUES (?, ?, ?)");
+    $stmt->bind_param('iis', $_SESSION['user_id'], $product_id, $domain_name);
     $stmt->execute();
     $order_id = $db->insert_id;
 
