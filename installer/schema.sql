@@ -19,6 +19,8 @@ INSERT INTO `settings` (`setting`, `value`) VALUES
 ('tax_rate', '0.00'),
 ('connectreseller_api_key', ''),
 ('connectreseller_reseller_id', ''),
+('nocix_api_key', ''),
+('paystack_secret_key', ''),
 ('base_currency', 'NGN'),
 ('secondary_currency', 'USD'),
 ('usd_conversion_rate', '1.00'),
@@ -66,6 +68,8 @@ CREATE TABLE `staff_permissions` (
 
 -- Create a default Super Admin role
 INSERT INTO `staff_roles` (`id`, `name`) VALUES (1, 'Super Admin');
+
+INSERT INTO `staff_permissions` (`role_id`, `permission`) VALUES (1, 'manage_servers');
 
 CREATE TABLE `users` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -177,6 +181,18 @@ CREATE TABLE `affiliate_payouts` (
     FOREIGN KEY (`affiliate_user_id`) REFERENCES `affiliates`(`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `dedicated_servers` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `order_id` int(11) NOT NULL,
+    `server_id` varchar(100) NOT NULL,
+    `ip_address` varchar(45) DEFAULT NULL,
+    `status` varchar(50) NOT NULL DEFAULT 'Provisioning',
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `order_id` (`order_id`),
+    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE `customers` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `reseller_user_id` int(11) NOT NULL,
@@ -203,7 +219,7 @@ CREATE TABLE `orders` (
 CREATE TABLE `invoices` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `user_id` int(11) NOT NULL,
-    `order_id` int(11) NOT NULL,
+    `order_id` int(11) DEFAULT NULL,
     `amount` decimal(10,2) NOT NULL,
     `status` varchar(50) NOT NULL DEFAULT 'Unpaid',
     `due_date` date NOT NULL,
@@ -211,8 +227,7 @@ CREATE TABLE `invoices` (
     `tax_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
-    FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
+    FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `products` (
@@ -227,6 +242,7 @@ CREATE TABLE `products` (
     `category` varchar(100) NOT NULL,
     `server_type` varchar(50) DEFAULT NULL,
     `package_name` varchar(100) DEFAULT NULL,
+    `server_identifier` varchar(100) DEFAULT NULL,
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -2,11 +2,16 @@
 require_once '../app/core/bootstrap.php';
 require_once '../app/modules/Cpanel.php';
 require_once '../app/modules/ConnectReseller.php';
+require_once '../app/modules/Nocix.php';
 
-// --- PAYSTACK CONFIGURATION (PLACEHOLDERS) ---
-define('PAYSTACK_SECRET_KEY', 'sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+// 1. Fetch Paystack secret key from database
+$stmt = $db->prepare("SELECT value FROM settings WHERE setting = ?");
+$setting_name = 'paystack_secret_key';
+$stmt->bind_param('s', $setting_name);
+$stmt->execute();
+$paystack_secret_key = $stmt->get_result()->fetch_assoc()['value'] ?? '';
 
-// 1. Retrieve the request's body and parse it as JSON
+// 2. Retrieve the request's body and parse it as JSON
 $input = @file_get_contents("php://input");
 
 // 2. Validate the event
@@ -19,7 +24,7 @@ if (!$event || !isset($event->event)) {
 // 3. Verify the signature
 if (isset($_SERVER['HTTP_X_PAYSTACK_SIGNATURE'])) {
     $signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'];
-    $expected_signature = hash_hmac('sha512', $input, PAYSTACK_SECRET_KEY);
+    $expected_signature = hash_hmac('sha512', $input, $paystack_secret_key);
     if ($signature !== $expected_signature) {
         http_response_code(401); // Unauthorized
         exit();
@@ -100,6 +105,16 @@ if ($event->event === 'charge.success') {
                             $stmt = $db->prepare("INSERT INTO domains (order_id, domain_name, registrar, expires_at) VALUES (?, ?, 'ConnectReseller', ?)");
                             $stmt->bind_param('iss', $provision_data['order_id'], $provision_data['domain_name'], $expires_at);
                             $stmt->execute();
+                        } elseif ($provision_data['server_type'] === 'nocix') {
+                            // --- NOCIX Provisioning ---
+                            $nocix = new Nocix();
+                            $server_details = $nocix->provision_server($provision_data['package_name']);
+
+                            if (isset($server_details['status']) && $server_details['status'] === 'success') {
+                                $stmt = $db->prepare("INSERT INTO dedicated_servers (order_id, server_id, ip_address, status) VALUES (?, ?, ?, 'active')");
+                                $stmt->bind_param('iss', $provision_data['order_id'], $server_details['id'], $server_details['ip']);
+                                $stmt->execute();
+                            }
                         }
                     }
                 }

@@ -27,6 +27,9 @@ function verify_host() {
     http_response_code(404); // Not Found is appropriate
 
     // Themed Error Page
+    $safe_current_host = htmlspecialchars($current_host);
+    $safe_base_url = htmlspecialchars($base_url_setting['value']);
+
     echo <<<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -41,13 +44,13 @@ function verify_host() {
 <div class="installer-container">
     <div class="installer-header text-center">
         <h1>Domain Not Found</h1>
-        <p class="lead">The domain <strong><?php echo htmlspecialchars($current_host); ?></strong> is not configured to be used with this service.</p>
+        <p class="lead">The domain <strong>$safe_current_host</strong> is not configured to be used with this service.</p>
     </div>
     <div class="alert alert-danger">
         If you are a customer, please contact the person who provided you with this link.
     </div>
     <div class="text-center mt-4">
-        <p>If you are trying to access our main site, please <a href="<?php echo htmlspecialchars($base_url_setting['value']); ?>">click here</a>.</p>
+        <p>If you are trying to access our main site, please <a href="$safe_base_url">click here</a>.</p>
     </div>
 </div>
 </body>

@@ -25,8 +25,6 @@ class Cpanel {
         $query = $this->whm_host . "/json-api/" . $function . "?api.version=1&" . http_build_query($params);
 
         $curl = curl_init();
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         $header[0] = "Authorization: whm " . $this->whm_user . ":" . $this->whm_api_token;

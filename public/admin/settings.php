@@ -30,6 +30,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'connectreseller_api_key' => $_POST['connectreseller_api_key'],
                 'connectreseller_reseller_id' => $_POST['connectreseller_reseller_id'],
             ];
+        } elseif (isset($_POST['nocix_api_key'])) {
+            $settings_to_update = [
+                'nocix_api_key' => $_POST['nocix_api_key'],
+            ];
         } elseif (isset($_POST['tax_rate'])) { // Check if the Financial form was submitted
             $settings_to_update = [
                 'tax_rate' => $_POST['tax_rate'],
@@ -108,6 +112,19 @@ while ($row = $settings_result->fetch_assoc()) {
             </div>
 
             <button type="submit" class="btn btn-primary">Save Settings</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">NOCIX.net API Settings</div>
+    <div class="card-body">
+        <form action="settings.php" method="post">
+            <div class="mb-3">
+                <label for="nocix_api_key" class="form-label">API Key</label>
+                <input type="password" class="form-control" id="nocix_api_key" name="nocix_api_key" value="<?php echo htmlspecialchars($settings['nocix_api_key'] ?? ''); ?>">
+            </div>
+            <button type="submit" class="btn btn-primary">Save NOCIX.net Settings</button>
         </form>
     </div>
 </div>

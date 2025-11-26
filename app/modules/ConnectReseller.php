@@ -57,20 +57,18 @@ class ConnectReseller {
             'order-details' => [
                 'domain-name' => $domain,
                 'years' => '1',
-                // These are example contact details. In a real application,
-                // you would collect these from the user during checkout.
                 'contact' => [
                     'registrant' => [
                         'name' => $customer_details['name'],
                         'email' => $customer_details['email'],
-                        'company' => 'N/A',
-                        'address-line-1' => '123 Test Street',
-                        'city' => 'Test City',
-                        'state' => 'Test State',
-                        'zipcode' => '12345',
-                        'country' => 'US',
-                        'phone-cc' => '1',
-                        'phone' => '1234567890'
+                        'company' => $customer_details['company'] ?? 'N/A',
+                        'address-line-1' => $customer_details['address'] ?? 'N/A',
+                        'city' => $customer_details['city'] ?? 'N/A',
+                        'state' => $customer_details['state'] ?? 'N/A',
+                        'zipcode' => $customer_details['zipcode'] ?? 'N/A',
+                        'country' => $customer_details['country'] ?? 'US',
+                        'phone-cc' => $customer_details['phone_cc'] ?? '1',
+                        'phone' => $customer_details['phone'] ?? '1234567890'
                     ],
                 ]
             ]

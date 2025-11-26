@@ -13,13 +13,9 @@ if (!$invoice_id) {
     exit;
 }
 
-// --- PAYSTACK CONFIGURATION (PLACEHOLDERS) ---
-// In a real application, these should be stored in the database settings
-define('PAYSTACK_SECRET_KEY', 'sk_test_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-
 try {
     // 1. Fetch settings, invoice, and user details
-    $settings_result = $db->query("SELECT * FROM settings WHERE setting IN ('base_url', 'base_currency', 'secondary_currency', 'usd_conversion_rate')");
+    $settings_result = $db->query("SELECT * FROM settings WHERE setting IN ('base_url', 'base_currency', 'secondary_currency', 'usd_conversion_rate', 'paystack_secret_key')");
     $settings = [];
     while ($row = $settings_result->fetch_assoc()) {
         $settings[$row['setting']] = $row['value'];
@@ -67,7 +63,7 @@ try {
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($post_data));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . PAYSTACK_SECRET_KEY,
+        'Authorization: Bearer ' . ($settings['paystack_secret_key'] ?? ''),
         'Content-Type: application/json',
     ]);
 

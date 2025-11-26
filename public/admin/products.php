@@ -24,15 +24,16 @@ try {
         $package_name = $_POST['package_name'];
         $product_type = $_POST['product_type'];
         $tld = $_POST['tld'];
+        $server_identifier = $_POST['server_identifier'];
 
         if ($action === 'edit' && $product_id) {
-            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, product_type = ?, tld = ?, price_monthly = ?, price_annually = ?, category = ?, wholesale_discount_percent = ?, server_type = ?, package_name = ? WHERE id = ?");
-            $stmt->bind_param('ssssddsdssi', $name, $description, $product_type, $tld, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name, $product_id);
+            $stmt = $db->prepare("UPDATE products SET name = ?, description = ?, product_type = ?, tld = ?, price_monthly = ?, price_annually = ?, category = ?, wholesale_discount_percent = ?, server_type = ?, package_name = ?, server_identifier = ? WHERE id = ?");
+            $stmt->bind_param('ssssddsdsssi', $name, $description, $product_type, $tld, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name, $server_identifier, $product_id);
             $stmt->execute();
             $success = "Product updated successfully.";
         } elseif ($action === 'add') {
-            $stmt = $db->prepare("INSERT INTO products (name, description, product_type, tld, price_monthly, price_annually, category, wholesale_discount_percent, server_type, package_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('ssssddsdss', $name, $description, $product_type, $tld, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name);
+            $stmt = $db->prepare("INSERT INTO products (name, description, product_type, tld, price_monthly, price_annually, category, wholesale_discount_percent, server_type, package_name, server_identifier) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param('ssssddsdsss', $name, $description, $product_type, $tld, $price_monthly, $price_annually, $category, $wholesale_discount_percent, $server_type, $package_name, $server_identifier);
             $stmt->execute();
             $success = "Product added successfully.";
         }
@@ -120,15 +121,20 @@ $base_currency = $currency_setting['value'] ?? '';
                     <select class="form-select" id="server_type" name="server_type">
                         <option value="">None</option>
                         <option value="cpanel" <?php echo ($product_to_edit['server_type'] ?? '') === 'cpanel' ? 'selected' : ''; ?>>cPanel/WHM</option>
+                        <option value="nocix" <?php echo ($product_to_edit['server_type'] ?? '') === 'nocix' ? 'selected' : ''; ?>>NOCIX.net</option>
                     </select>
                 </div>
                 <div class="col-md-6 mb-3">
-                    <label for="package_name" class="form-label">Package Name</label>
+                    <label for="package_name" class="form-label">Package Name (cPanel)</label>
                     <div class="input-group">
                         <input type="text" class="form-control" id="package_name" name="package_name" value="<?php echo $product_to_edit['package_name'] ?? ''; ?>">
                         <button class="btn btn-outline-secondary" type="button" id="fetch-packages-btn">Fetch Packages</button>
                     </div>
                 </div>
+            </div>
+            <div class="mb-3">
+                <label for="server_identifier" class="form-label">Server Identifier (NOCIX)</label>
+                <input type="text" class="form-control" id="server_identifier" name="server_identifier" value="<?php echo $product_to_edit['server_identifier'] ?? ''; ?>" placeholder="e.g., lox-101">
             </div>
 
             <button type="submit" class="btn btn-primary"><?php echo $product_to_edit ? 'Update Product' : 'Add Product'; ?></button>

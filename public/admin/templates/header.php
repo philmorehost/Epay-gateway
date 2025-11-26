@@ -46,6 +46,11 @@ if (!isset($_SESSION['staff_id'])) {
             <li class="nav-item">
                 <a class="nav-link" href="domains.php">Domains</a>
             </li>
+            <?php if (has_permission('manage_servers')): ?>
+            <li class="nav-item">
+                <a class="nav-link" href="manage_servers.php">Manage Servers</a>
+            </li>
+            <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link" href="payouts.php">Payouts</a>
             </li>

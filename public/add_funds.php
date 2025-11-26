@@ -16,42 +16,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Please enter a valid amount.";
     } else {
         try {
-            // This is a simplified approach. In a real application, you might have a
-            // dedicated "Add Funds" product in the products table.
-            $product_name = "Add Funds to Account";
             $user_id = $_SESSION['user_id'];
 
-            $db->begin_transaction();
-
-            // 1. Create a temporary "Add Funds" product and order.
-            // This is not ideal, but works for this simplified example.
-            // A better approach would be to have a pre-defined "Add Funds" product
-            // or handle this without creating a product entry.
-            $stmt = $db->prepare("INSERT INTO products (name, description, price_monthly, category) VALUES (?, ?, ?, 'Credit')");
-            $stmt->bind_param('ssd', $product_name, $product_name, $amount);
-            $stmt->execute();
-            $product_id = $db->insert_id;
-
-            $stmt = $db->prepare("INSERT INTO orders (user_id, product_id, status) VALUES (?, ?, 'Credit Deposit')");
-            $stmt->bind_param('ii', $user_id, $product_id);
-            $stmt->execute();
-            $order_id = $db->insert_id;
-
-            // 2. Create a special invoice for this transaction
+            // Create a credit invoice directly without a product/order
             $due_date = date('Y-m-d');
-            $stmt = $db->prepare("INSERT INTO invoices (user_id, order_id, amount, due_date, status, is_credit_invoice) VALUES (?, ?, ?, ?, 'Unpaid', 1)");
-            $stmt->bind_param('iids', $user_id, $order_id, $amount, $due_date);
+            $stmt = $db->prepare("INSERT INTO invoices (user_id, order_id, amount, due_date, status, is_credit_invoice) VALUES (?, 0, ?, ?, 'Unpaid', 1)");
+            $stmt->bind_param('ids', $user_id, $amount, $due_date);
             $stmt->execute();
             $invoice_id = $db->insert_id;
 
-            $db->commit();
-
-            // 3. Redirect to the invoice to be paid
+            // Redirect to the invoice to be paid
             header('Location: view_invoice.php?id=' . $invoice_id);
             exit;
 
         } catch (Exception $e) {
-            $db->rollback();
             $error = "An error occurred. Please try again. " . $e->getMessage();
         }
     }

@@ -11,6 +11,7 @@ $available_permissions = [
     'manage_staff' => 'Manage Staff',
     'view_reports' => 'View Reports',
     'manage_settings' => 'Manage Settings',
+    'manage_servers' => 'Manage Servers',
 ];
 
 // Handle form submissions
