@@ -9,11 +9,14 @@ $query = "SELECT
             i.due_date,
             i.created_at,
             u.name as user_name,
-            p.name as product_name
+            CASE
+                WHEN o.id IS NULL THEN 'Add Funds'
+                ELSE p.name
+            END as product_name
           FROM invoices i
           JOIN users u ON i.user_id = u.id
-          JOIN orders o ON i.order_id = o.id
-          JOIN products p ON o.product_id = p.id
+          LEFT JOIN orders o ON i.order_id = o.id
+          LEFT JOIN products p ON o.product_id = p.id
           ORDER BY i.created_at DESC";
 $invoices = $db->query($query)->fetch_all(MYSQLI_ASSOC);
 ?>

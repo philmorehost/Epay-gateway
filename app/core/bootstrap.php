@@ -3,6 +3,9 @@
 
 session_start();
 
+// Autoload dependencies
+require_once __DIR__ . '/../../vendor/autoload.php';
+
 // Check if the application is installed
 if (!file_exists(__DIR__ . '/../../config/config.php')) {
     header('Location: ../installer/index.php');

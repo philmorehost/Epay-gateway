@@ -9,10 +9,15 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch user's invoices
 $user_id = $_SESSION['user_id'];
-$query = "SELECT i.id, p.name as product_name, i.amount, i.status, i.due_date
+$query = "SELECT i.id,
+                 CASE
+                     WHEN o.id IS NULL THEN 'Add Funds'
+                     ELSE p.name
+                 END as product_name,
+                 i.amount, i.status, i.due_date
           FROM invoices i
-          JOIN orders o ON i.order_id = o.id
-          JOIN products p ON o.product_id = p.id
+          LEFT JOIN orders o ON i.order_id = o.id
+          LEFT JOIN products p ON o.product_id = p.id
           WHERE i.user_id = ?
           ORDER BY i.created_at DESC";
 $stmt = $db->prepare($query);

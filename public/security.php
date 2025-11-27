@@ -1,6 +1,6 @@
 <?php
 require_once '../app/core/bootstrap.php';
-require_once '../vendor/google-authenticator/PHPGangsta/GoogleAuthenticator.php';
+use PragmaRX\Google2FA\Google2FA;
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -9,8 +9,9 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$ga = new PHPGangsta_GoogleAuthenticator();
+$google2fa = new Google2FA();
 $error = $success = null;
+$companyName = 'HostBill-1'; // Or fetch from a setting
 
 // Fetch user's current 2FA status
 $stmt = $db->prepare("SELECT email, 2fa_secret, 2fa_enabled FROM users WHERE id = ?");
@@ -22,18 +23,20 @@ $qrCodeUrl = null;
 if (isset($_POST['action'])) {
     if ($_POST['action'] === 'enable_2fa_start' && !$user['2fa_enabled']) {
         // Generate a new secret and display the QR code
-        $secret = $ga->createSecret();
+        $secret = $google2fa->generateSecretKey();
         $stmt = $db->prepare("UPDATE users SET 2fa_secret = ? WHERE id = ?");
         $stmt->bind_param('si', $secret, $user_id);
         $stmt->execute();
         $user['2fa_secret'] = $secret; // Update for the current request
 
-        $qrCodeUrl = $ga->getQRCodeGoogleUrl($user['email'], $secret, 'YourAppName');
+        $qrCodeUrl = $google2fa->getQRCodeUrl($companyName, $user['email'], $secret);
     }
     elseif ($_POST['action'] === 'enable_2fa_finish' && !empty($user['2fa_secret'])) {
         // Verify the code and enable 2FA
         $code = $_POST['2fa_code'];
-        if ($ga->verifyCode($user['2fa_secret'], $code, 2)) {
+        $isValid = $google2fa->verifyKey($user['2fa_secret'], $code);
+
+        if ($isValid) {
             $stmt = $db->prepare("UPDATE users SET 2fa_enabled = 1 WHERE id = ?");
             $stmt->bind_param('i', $user_id);
             $stmt->execute();
@@ -41,7 +44,7 @@ if (isset($_POST['action'])) {
             $user['2fa_enabled'] = true; // Update for the current request
         } else {
             $error = "Invalid or expired code. Please try again.";
-            $qrCodeUrl = $ga->getQRCodeGoogleUrl($user['email'], $user['2fa_secret'], 'YourAppName'); // Reshow QR
+            $qrCodeUrl = $google2fa->getQRCodeUrl($companyName, $user['email'], $user['2fa_secret']); // Reshow QR
         }
     }
     elseif ($_POST['action'] === 'disable_2fa') {
@@ -84,13 +87,14 @@ if (isset($_POST['action'])) {
                 <h5>Step 2: Verify the Code</h5>
                 <p>Scan the QR code below with your authenticator app, then enter the 6-digit code to complete the setup.</p>
                 <div class="text-center my-3">
+                    <!-- Note: The PragmaRX library generates a Google Charts URL, which is fine -->
                     <img src="<?php echo $qrCodeUrl; ?>">
                 </div>
                 <form action="security.php" method="post">
                     <input type="hidden" name="action" value="enable_2fa_finish">
                     <div class="mb-3">
                         <label for="2fa_code" class="form-label">Verification Code</label>
-                        <input type="text" class="form-control" id="2fa_code" name="2fa_code" required maxlength="6">
+                        <input type="text" class="form-control" id="2fa_code" name="2fa_code" required maxlength="6" pattern="\d{6}" title="Enter a 6-digit code">
                     </div>
                     <button type="submit" class="btn btn-primary">Enable 2FA</button>
                 </form>
@@ -105,7 +109,7 @@ if (isset($_POST['action'])) {
         </div>
     </div>
      <div class="text-center mt-4">
-        <a href="index.php">Back to Dashboard</a>
+        <a href="client_dashboard.php">Back to Dashboard</a>
     </div>
 </div>
 </body>

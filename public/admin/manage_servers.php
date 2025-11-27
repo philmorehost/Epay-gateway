@@ -5,7 +5,7 @@ require_once '../../app/core/bootstrap.php';
 require_permission('manage_servers');
 
 $page_title = "Manage Dedicated Servers";
-include_once 'includes/header.php';
+include_once 'templates/header.php';
 ?>
 
 <div class="container-fluid py-4">
@@ -82,5 +82,5 @@ include_once 'includes/header.php';
 </div>
 
 <?php
-include_once 'includes/footer.php';
+include_once 'templates/footer.php';
 ?>

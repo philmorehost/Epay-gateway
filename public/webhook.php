@@ -81,9 +81,12 @@ if ($event->event === 'charge.success') {
                             $user_details_stmt->execute();
                             $user_details = $user_details_stmt->get_result()->fetch_assoc();
 
-                            $domain = substr(strrchr($user_details['email'], "@"), 1);
-                            $username = 'user' . substr(md5(time()), 0, 6);
-                            $password = 'pass' . substr(md5(rand()), 0, 10) . '!';
+                            // **FIX:** Use the actual domain name from the order, not the customer's email domain.
+                            $domain = $provision_data['domain_name'];
+
+                            // Generate a more secure username and password
+                            $username = strtolower(substr(preg_replace('/[^a-zA-Z0-9]/', '', $user_details['name']), 0, 5)) . rand(100, 999);
+                            $password = substr(str_shuffle('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()'), 0, 12) . '!';
 
                             $cpanel->create_account($domain, $username, $password, $provision_data['package_name']);
 

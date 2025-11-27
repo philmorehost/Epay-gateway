@@ -6,24 +6,36 @@ $results = null;
 $error = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['domain'])) {
-    $domain_parts = explode('.', $_POST['domain'], 2);
-    $sld = $domain_parts[0];
-    $tlds = $_POST['tlds'] ?? [];
+    $domain_input = trim($_POST['domain']);
+    $tlds_to_check = [];
+    $results = [];
 
-    if (!empty($sld) && !empty($tlds)) {
+    // Scenario 1: User enters a full domain like "example.com"
+    if (strpos($domain_input, '.') !== false) {
+        $tlds_to_check[] = $domain_input;
+    }
+    // Scenario 2: User enters just a name like "example"
+    else {
+        // Use a default list of TLDs if none are provided via checkboxes
+        $default_tlds = ['com', 'net', 'org', 'io'];
+        $selected_tlds = $_POST['tlds'] ?? $default_tlds;
+        foreach ($selected_tlds as $tld) {
+            $tlds_to_check[] = $domain_input . '.' . ltrim($tld, '.');
+        }
+    }
+
+    if (!empty($tlds_to_check)) {
         try {
             $connect_reseller = new ConnectReseller();
-            $results = [];
-            foreach ($tlds as $tld) {
-                $domain_to_check = $sld . '.' . $tld;
-                $availability = $connect_reseller->check_availability($domain_to_check);
-                $results[$domain_to_check] = $availability;
+            foreach ($tlds_to_check as $domain) {
+                $availability = $connect_reseller->check_availability($domain);
+                $results[$domain] = $availability;
             }
         } catch (Exception $e) {
             $error = "API Error: " . $e->getMessage();
         }
     } else {
-        $error = "Please enter a domain name and select at least one TLD.";
+        $error = "Please enter a domain name to search.";
     }
 }
 ?>

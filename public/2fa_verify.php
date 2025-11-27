@@ -1,6 +1,6 @@
 <?php
 require_once '../app/core/bootstrap.php';
-require_once '../vendor/google-authenticator/PHPGangsta/GoogleAuthenticator.php';
+use PragmaRX\Google2FA\Google2FA;
 
 $error = null;
 $user_id_to_verify = $_SESSION['2fa_user_id'] ?? null;
@@ -18,15 +18,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
 
-    if ($user) {
-        $ga = new PHPGangsta_GoogleAuthenticator();
-        if ($ga->verifyCode($user['2fa_secret'], $code, 2)) {
+    if ($user && !empty($user['2fa_secret'])) {
+        $google2fa = new Google2FA();
+        $isValid = $google2fa->verifyKey($user['2fa_secret'], $code);
+
+        if ($isValid) {
             // 2FA successful, complete the login
             unset($_SESSION['2fa_user_id']);
             $_SESSION['user_id'] = $user_id_to_verify;
 
             // Redirect to the intended page or the dashboard
-            $return_to = $_SESSION['return_to'] ?? 'index.php';
+            $return_to = $_SESSION['return_to'] ?? 'client_dashboard.php'; // Default to dashboard
             unset($_SESSION['return_to']);
             header("Location: $return_to");
             exit;
@@ -34,7 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Invalid or expired code.";
         }
     } else {
-        $error = "An unexpected error occurred.";
+        // This case should ideally not happen if 2FA is enforced correctly
+        $error = "An unexpected error occurred. 2FA secret not found.";
     }
 }
 ?>
@@ -60,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form action="2fa_verify.php" method="post">
                 <div class="mb-3">
                     <label for="2fa_code" class="form-label">Verification Code</label>
-                    <input type="text" class="form-control" id="2fa_code" name="2fa_code" required maxlength="6">
+                    <input type="text" class="form-control" id="2fa_code" name="2fa_code" required maxlength="6" pattern="\d{6}" title="Enter a 6-digit code">
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Verify</button>
             </form>
