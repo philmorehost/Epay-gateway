@@ -1,54 +1,17 @@
 <?php
-/**
- * index.php - Main entry point for the application
- * 
- * This is a placeholder file that can be customized for your specific needs.
- */
+// Root index.php
 
-// Optional: Set content type
-header('Content-Type: text/html; charset=utf-8');
+// This file acts as the primary entry point for the application.
+// Its purpose is to check if the application has been installed.
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Placeholder</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        .info {
-            color: #666;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Website Placeholder</h1>
-        <p>This is a placeholder page. Content will be added soon.</p>
-        <div class="info">
-            <p>File: index.php</p>
-            <p><?php echo 'Current time: ' . date('Y-m-d H:i:s'); ?></p>
-        </div>
-    </div>
-</body>
-</html>
+// If the configuration file exists, it means the installation is complete,
+// and we can safely forward the user to the public landing page.
+if (file_exists(__DIR__ . '/config/config.php')) {
+    header('Location: public/');
+    exit;
+} else {
+    // If the configuration file is missing, it's a fresh instance,
+    // so we must direct the user to the web-based installer.
+    header('Location: installer/');
+    exit;
+}
