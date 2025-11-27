@@ -8,58 +8,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $db->begin_transaction();
 
-        // Settings to update
         $settings_to_update = [];
-        if (isset($_POST['smtp_host'])) { // Check if the SMTP form was submitted
-            $settings_to_update = [
-                'smtp_host' => $_POST['smtp_host'],
-                'smtp_port' => $_POST['smtp_port'],
-                'smtp_username' => $_POST['smtp_username'],
-                'smtp_password' => $_POST['smtp_password'],
-                'smtp_encryption' => $_POST['smtp_encryption'],
-                'system_email' => $_POST['system_email'],
-            ];
-        } elseif (isset($_POST['whm_host'])) { // Check if the WHM form was submitted
-            $settings_to_update = [
-                'whm_host' => $_POST['whm_host'],
-                'whm_user' => $_POST['whm_user'],
-                'whm_api_token' => $_POST['whm_api_token'],
-            ];
-        } elseif (isset($_POST['connectreseller_api_key'])) {
-            $settings_to_update = [
-                'connectreseller_api_key' => $_POST['connectreseller_api_key'],
-                'connectreseller_reseller_id' => $_POST['connectreseller_reseller_id'],
-            ];
-        } elseif (isset($_POST['nocix_api_key'])) {
-            $settings_to_update = [
-                'nocix_api_key' => $_POST['nocix_api_key'],
-            ];
-        } elseif (isset($_POST['tax_rate'])) { // Check if the Financial form was submitted
-            $settings_to_update = [
-                'tax_rate' => $_POST['tax_rate'],
-                'base_currency' => $_POST['base_currency'],
-                'secondary_currency' => $_POST['secondary_currency'],
-                'usd_conversion_rate' => $_POST['usd_conversion_rate'],
-                'affiliate_commission_percentage' => $_POST['affiliate_commission_percentage'],
-                'affiliate_min_payout' => $_POST['affiliate_min_payout'],
-            ];
+        // Determine which form was submitted and populate the settings array
+        if (isset($_POST['form_type'])) {
+            switch ($_POST['form_type']) {
+                case 'smtp':
+                    $settings_to_update = ['smtp_host', 'smtp_port', 'smtp_username', 'smtp_password', 'smtp_encryption', 'system_email'];
+                    break;
+                case 'whm':
+                    $settings_to_update = ['whm_host', 'whm_user', 'whm_api_token'];
+                    break;
+                case 'connectreseller':
+                    $settings_to_update = ['connectreseller_api_key', 'connectreseller_reseller_id'];
+                    break;
+                case 'nocix':
+                    $settings_to_update = ['nocix_api_key'];
+                    break;
+                case 'financial':
+                    $settings_to_update = ['tax_rate', 'base_currency', 'secondary_currency', 'usd_conversion_rate', 'affiliate_commission_percentage', 'affiliate_min_payout'];
+                    break;
+                case 'security':
+                    $settings_to_update = ['ip_blacklist', 'ip_whitelist', 'max_login_attempts'];
+                    break;
+            }
         }
 
-        $stmt = $db->prepare("UPDATE settings SET value = ? WHERE setting = ?");
-
-        foreach ($settings_to_update as $key => $value) {
-            $stmt->bind_param('ss', $value, $key);
-            $stmt->execute();
+        if (!empty($settings_to_update)) {
+            $stmt = $db->prepare("UPDATE settings SET value = ? WHERE setting = ?");
+            foreach ($settings_to_update as $key) {
+                $value = $_POST[$key] ?? '';
+                $stmt->bind_param('ss', $value, $key);
+                $stmt->execute();
+            }
+            $stmt->close();
+            $db->commit();
+            $success = "Settings updated successfully.";
+        } else {
+            // This case handles if a form is submitted without a known form_type
+            $error = "Invalid form submission.";
         }
-
-        $db->commit();
-        $success = "Settings updated successfully.";
     } catch (Exception $e) {
         $db->rollback();
         $error = "Failed to update settings: " . $e->getMessage();
     }
 }
-
 
 // Fetch current settings
 $settings_result = $db->query("SELECT * FROM settings");
@@ -74,10 +66,37 @@ while ($row = $settings_result->fetch_assoc()) {
 <?php if ($error) echo "<div class='alert alert-danger'>$error</div>"; ?>
 <?php if ($success) echo "<div class='alert alert-success'>$success</div>"; ?>
 
-<div class="card">
+<!-- Security Settings Card -->
+<div class="card mt-4">
+    <div class="card-header">Security Settings</div>
+    <div class="card-body">
+        <form action="settings.php" method="post">
+            <input type="hidden" name="form_type" value="security">
+            <div class="mb-3">
+                <label for="max_login_attempts" class="form-label">Maximum Failed Login Attempts</label>
+                <input type="number" class="form-control" id="max_login_attempts" name="max_login_attempts" value="<?php echo htmlspecialchars($settings['max_login_attempts'] ?? '5'); ?>">
+                <small class="form-text text-muted">Number of failed login attempts before an IP is temporarily blocked.</small>
+            </div>
+            <div class="mb-3">
+                <label for="ip_blacklist" class="form-label">IP Blacklist</label>
+                <textarea class="form-control" id="ip_blacklist" name="ip_blacklist" rows="3"><?php echo htmlspecialchars($settings['ip_blacklist'] ?? ''); ?></textarea>
+                <small class="form-text text-muted">One IP address per line. These IPs will be completely blocked from accessing the site.</small>
+            </div>
+            <div class="mb-3">
+                <label for="ip_whitelist" class="form-label">IP Whitelist</label>
+                <textarea class="form-control" id="ip_whitelist" name="ip_whitelist" rows="3"><?php echo htmlspecialchars($settings['ip_whitelist'] ?? ''); ?></textarea>
+                <small class="form-text text-muted">One IP address per line. If this list is not empty, only these IPs will be able to access the site.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Security Settings</button>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
     <div class="card-header">SMTP Configuration</div>
     <div class="card-body">
         <form action="settings.php" method="post">
+            <input type="hidden" name="form_type" value="smtp">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="smtp_host" class="form-label">SMTP Host</label>
@@ -110,8 +129,7 @@ while ($row = $settings_result->fetch_assoc()) {
                 <label for="system_email" class="form-label">System Email Address</label>
                 <input type="email" class="form-control" id="system_email" name="system_email" value="<?php echo htmlspecialchars($settings['system_email'] ?? ''); ?>">
             </div>
-
-            <button type="submit" class="btn btn-primary">Save Settings</button>
+            <button type="submit" class="btn btn-primary">Save SMTP Settings</button>
         </form>
     </div>
 </div>
@@ -120,6 +138,7 @@ while ($row = $settings_result->fetch_assoc()) {
     <div class="card-header">NOCIX.net API Settings</div>
     <div class="card-body">
         <form action="settings.php" method="post">
+            <input type="hidden" name="form_type" value="nocix">
             <div class="mb-3">
                 <label for="nocix_api_key" class="form-label">API Key</label>
                 <input type="password" class="form-control" id="nocix_api_key" name="nocix_api_key" value="<?php echo htmlspecialchars($settings['nocix_api_key'] ?? ''); ?>">
@@ -133,6 +152,7 @@ while ($row = $settings_result->fetch_assoc()) {
     <div class="card-header">ConnectReseller API Settings</div>
     <div class="card-body">
         <form action="settings.php" method="post">
+            <input type="hidden" name="form_type" value="connectreseller">
             <div class="mb-3">
                 <label for="connectreseller_api_key" class="form-label">API Key</label>
                 <input type="password" class="form-control" id="connectreseller_api_key" name="connectreseller_api_key" value="<?php echo htmlspecialchars($settings['connectreseller_api_key'] ?? ''); ?>">
@@ -150,6 +170,7 @@ while ($row = $settings_result->fetch_assoc()) {
     <div class="card-header">WHM/cPanel Server Configuration</div>
     <div class="card-body">
         <form action="settings.php" method="post">
+             <input type="hidden" name="form_type" value="whm">
              <div class="mb-3">
                 <label for="whm_host" class="form-label">WHM Host</label>
                 <input type="text" class="form-control" id="whm_host" name="whm_host" value="<?php echo htmlspecialchars($settings['whm_host'] ?? ''); ?>" placeholder="e.g., https://your-server.com:2087">
@@ -172,6 +193,7 @@ while ($row = $settings_result->fetch_assoc()) {
     <div class="card-header">Financial Settings</div>
     <div class="card-body">
         <form action="settings.php" method="post">
+            <input type="hidden" name="form_type" value="financial">
             <div class="mb-3">
                 <label for="tax_rate" class="form-label">Global Tax Rate (%)</label>
                 <input type="number" step="0.01" class="form-control" id="tax_rate" name="tax_rate" value="<?php echo htmlspecialchars($settings['tax_rate'] ?? '0.00'); ?>">
@@ -208,6 +230,5 @@ while ($row = $settings_result->fetch_assoc()) {
         </form>
     </div>
 </div>
-
 
 <?php require_once 'templates/footer.php'; ?>

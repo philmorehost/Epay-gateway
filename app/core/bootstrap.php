@@ -26,6 +26,30 @@ try {
     die("An error occurred while connecting to the database.");
 }
 
+// --- IP Blacklist/Whitelist ---
+$settings_result = $db->query("SELECT `setting`, `value` FROM `settings` WHERE `setting` IN ('ip_blacklist', 'ip_whitelist')");
+$security_settings = [];
+while ($row = $settings_result->fetch_assoc()) {
+    $security_settings[$row['setting']] = $row['value'];
+}
+
+$user_ip = $_SERVER['REMOTE_ADDR'];
+
+// Check Blacklist
+$blacklist = !empty($security_settings['ip_blacklist']) ? array_map('trim', explode("\n", $security_settings['ip_blacklist'])) : [];
+if (in_array($user_ip, $blacklist)) {
+    http_response_code(403);
+    die('Your IP address has been blocked.');
+}
+
+// Check Whitelist (if it's not empty)
+$whitelist = !empty($security_settings['ip_whitelist']) ? array_map('trim', explode("\n", $security_settings['ip_whitelist'])) : [];
+if (!empty($whitelist) && !in_array($user_ip, $whitelist)) {
+    http_response_code(403);
+    die('Access from your IP address is not allowed.');
+}
+
+
 // Include the core email sending system
 require_once __DIR__ . '/email.php';
 
@@ -37,5 +61,5 @@ verify_host();
 require_once __DIR__ . '/acl.php';
 
 // --- Security Settings ---
-define('MAX_LOGIN_ATTEMPTS', 5); // Number of failed attempts before blocking
+// define('MAX_LOGIN_ATTEMPTS', 5); // This will be fetched from the DB
 define('LOGIN_BLOCK_TIME', 300); // Block duration in seconds (5 minutes)

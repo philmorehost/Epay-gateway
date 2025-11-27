@@ -4,13 +4,18 @@ require_once '../../app/core/bootstrap.php';
 $error = null;
 $ip_address = $_SERVER['REMOTE_ADDR'];
 
+// Fetch max_login_attempts from settings
+$max_attempts_stmt = $db->query("SELECT value FROM settings WHERE setting = 'max_login_attempts'");
+$max_login_attempts = $max_attempts_stmt->fetch_assoc()['value'] ?? 5; // Default to 5 if not set
+
 // --- Brute Force Check ---
 $stmt = $db->prepare("SELECT COUNT(*) as attempt_count FROM login_attempts WHERE ip_address = ? AND attempt_time > (NOW() - INTERVAL ? SECOND)");
-$stmt->bind_param('si', $ip_address, LOGIN_BLOCK_TIME);
+$block_time = LOGIN_BLOCK_TIME;
+$stmt->bind_param('si', $ip_address, $block_time);
 $stmt->execute();
 $result = $stmt->get_result()->fetch_assoc();
 
-if ($result['attempt_count'] >= MAX_LOGIN_ATTEMPTS) {
+if ($result['attempt_count'] >= $max_login_attempts) {
     $error = "Too many failed login attempts. Please try again later.";
 } else {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {

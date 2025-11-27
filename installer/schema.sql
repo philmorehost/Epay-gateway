@@ -228,6 +228,9 @@ CREATE TABLE `affiliate_payouts` (
 
 -- Insert default data
 INSERT INTO `settings` (`setting`, `value`) VALUES
+('ip_blacklist', ''),
+('ip_whitelist', ''),
+('max_login_attempts', '5'),
 ('smtp_host', ''),
 ('smtp_port', '587'),
 ('smtp_username', ''),
