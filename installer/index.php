@@ -110,6 +110,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             $error = $e->getMessage();
         }
+    } elseif ($step === '3_manual' && isset($_POST['verify_config'])) {
+        if (file_exists('../config/config.php')) {
+            header('Location: ?step=4');
+            exit;
+        } else {
+            $error = "The config.php file has not been created yet. Please follow the instructions below.";
+        }
     }
 }
 
@@ -118,7 +125,7 @@ switch ($step) {
         require_once 'templates/step4.php';
         break;
     case '3_manual':
-        require_once 'templates/step3_manual.php';
+        require_once 'templates/step3_manual_view.php';
         break;
     case 3:
         require_once 'templates/step3.php';

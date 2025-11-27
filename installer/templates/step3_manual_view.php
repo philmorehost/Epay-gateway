@@ -1,15 +1,3 @@
-<?php
-// installer/templates/step3_manual.php
-
-if (isset($_POST['verify_config'])) {
-    if (file_exists('../config/config.php')) {
-        header('Location: ?step=4');
-        exit;
-    } else {
-        $error = "The config.php file has not been created yet. Please follow the instructions below.";
-    }
-}
-?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
