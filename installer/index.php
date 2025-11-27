@@ -81,20 +81,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt->close();
 
-            // Create config file
+            // Create config file content
             $config_content = "<?php\n\n" .
                 "define('DB_HOST', '" . $_SESSION['db_host'] . "');\n" .
                 "define('DB_NAME', '" . $_SESSION['db_name'] . "');\n" .
                 "define('DB_USER', '" . $_SESSION['db_user'] . "');\n" .
                 "define('DB_PASS', '" . $_SESSION['db_pass'] . "');\n";
 
-            if (file_put_contents('../config/config.php', $config_content) === false) {
-                throw new Exception("Could not write config file.");
+            // Check if config directory is writable
+            $config_dir = '../config';
+            if (is_writable($config_dir)) {
+                if (file_put_contents($config_dir . '/config.php', $config_content) === false) {
+                    // If writing fails despite being writable, show manual step
+                    $_SESSION['config_content'] = $config_content;
+                    header('Location: ?step=3_manual');
+                    exit;
+                }
+                header('Location: ?step=4');
+            } else {
+                // Not writable, so redirect to manual configuration step
+                $_SESSION['config_content'] = $config_content;
+                header('Location: ?step=3_manual');
             }
 
             $mysqli->close();
-
-            header('Location: ?step=4');
             exit;
 
         } catch (Exception $e) {
@@ -106,6 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 switch ($step) {
     case 4:
         require_once 'templates/step4.php';
+        break;
+    case '3_manual':
+        require_once 'templates/step3_manual.php';
         break;
     case 3:
         require_once 'templates/step3.php';
