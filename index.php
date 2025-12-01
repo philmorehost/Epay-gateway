@@ -1,54 +1,34 @@
 <?php
-/**
- * index.php - Main entry point for the application
- * 
- * This is a placeholder file that can be customized for your specific needs.
- */
+// Root index.php
 
-// Optional: Set content type
-header('Content-Type: text/html; charset=utf-8');
+// This file acts as the primary entry point for the application.
+// Its purpose is to check if the application has been installed correctly.
 
-?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Placeholder</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        .info {
-            color: #666;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Website Placeholder</h1>
-        <p>This is a placeholder page. Content will be added soon.</p>
-        <div class="info">
-            <p>File: index.php</p>
-            <p><?php echo 'Current time: ' . date('Y-m-d H:i:s'); ?></p>
-        </div>
-    </div>
-</body>
-</html>
+$config_path = __DIR__ . '/config/config.php';
+
+// A flag to determine if the installation is complete and valid.
+$is_installed = false;
+
+// 1. Check if the config file exists and is not empty.
+if (file_exists($config_path) && filesize($config_path) > 0) {
+    // 2. Include the config file to check its contents.
+    // Use @ to suppress errors if the file is corrupt.
+    @include_once($config_path);
+
+    // 3. Check if a key constant from the config is defined.
+    // This confirms the file was written correctly.
+    if (defined('DB_HOST')) {
+        $is_installed = true;
+    }
+}
+
+// If the installation is complete, forward the user to the public landing page.
+if ($is_installed) {
+    header('Location: public/');
+    exit;
+} else {
+    // If the installation is incomplete or the config file is missing/corrupt,
+    // direct the user to the web-based installer.
+    header('Location: installer/');
+    exit;
+}
